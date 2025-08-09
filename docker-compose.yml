@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: healthyhabits-db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    env_file:
+      - .env
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: healthyhabits-app
+    depends_on:
+      - mariadb
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://mariadb:3306/${MARIADB_DATABASE}
+      - SPRING_DATASOURCE_USERNAME=${MARIADB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MARIADB_PASSWORD}
+
+volumes:
+  mariadb_data:
