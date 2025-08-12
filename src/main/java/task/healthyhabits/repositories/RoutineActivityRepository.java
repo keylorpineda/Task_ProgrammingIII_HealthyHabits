@@ -6,4 +6,5 @@ import task.healthyhabits.models.RoutineActivity;
 
 @Repository
 public interface RoutineActivityRepository extends JpaRepository<RoutineActivity, Long> {
+     void deleteAllByRoutineId(Long routineId); 
 }
