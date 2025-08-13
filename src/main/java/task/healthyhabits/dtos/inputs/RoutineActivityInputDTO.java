@@ -9,21 +9,14 @@ import jakarta.validation.constraints.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoutineActivityInputDTO {
-
-    @NotNull(message = "Habit is required.")
-    private HabitInputDTO habit;
-
-    @NotBlank(message = "Duration is required.")
-    @Size(max = 50, message = "Duration cannot exceed 50 characters.")
+    @NotNull
+    private Long habitId;
+    @NotBlank
+    @Size(max = 50)
     private String duration;
-
-    @NotBlank(message = "Target time is required.")
-    @Size(max = 50, message = "Target time cannot exceed 50 characters.")
+    @NotBlank
+    @Size(max = 50)
     private String targetTime;
-
-    @Size(max = 255, message = "Notes cannot exceed 255 characters.")
+    @Size(max = 255)
     private String notes;
-
-    @NotNull(message = "Routine is required.")
-    private RoutineInputDTO routine;
 }

@@ -1,22 +1,26 @@
 package task.healthyhabits.dtos.inputs;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProgressLogInputDTO {
 
-    @NotNull(message = "User is required.")
-    private UserInputDTO user;
+    @NotNull
+    private Long userId;
 
-    @NotNull(message = "Routine is required.")
-    private RoutineInputDTO routine;
+    @NotNull
+    private Long routineId;
 
-    @NotNull(message = "Date is required.")
+    @NotNull
     private LocalDate date;
+
+    @NotNull @Size(min = 1) @Valid
+    private List<CompletedActivityInputDTO> completedActivityInputs;
 }
