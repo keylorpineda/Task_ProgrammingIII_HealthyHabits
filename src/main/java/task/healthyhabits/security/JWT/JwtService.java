@@ -1,4 +1,4 @@
-package task.healthyhabits.security.jwt;
+package task.healthyhabits.security.JWT;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
