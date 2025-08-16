@@ -1,8 +1,10 @@
 package task.healthyhabits.dtos.inputs;
 
+import com.fasterxml.jackson.annotation.JsonProperty; 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +14,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "password")
+
 public class UserInputDTO {
 
     @NotBlank(message = "Name is required.")
@@ -25,6 +29,7 @@ public class UserInputDTO {
 
     @NotBlank(message = "Password is required.")
     @Size(min = 8, message = "Password must be at least 8 characters.")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @NotNull(message = "Roles cannot be null.")
