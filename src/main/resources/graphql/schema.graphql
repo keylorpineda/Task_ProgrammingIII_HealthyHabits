@@ -48,6 +48,13 @@ type Habit {
   description: String!
 }
 
+type Mutation {
+  registerUser(input: UserInputInput!): UserOutput!  
+  login(email: String!, password: String!): LoginResult!
+}
+type LoginResult { ok: Boolean! }
+
+
 type ProgressLog {
   id: ID!
   date: Date!
