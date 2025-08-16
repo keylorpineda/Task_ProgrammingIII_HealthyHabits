@@ -1,26 +1,24 @@
 package task.healthyhabits.dtos.inputs;
 
+import java.time.LocalDateTime;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.validation.constraints.*;
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompletedActivityInputDTO {
 
-    @NotNull(message = "Habit is required.")
-    private HabitInputDTO habit;
+    @NotNull
+    private Long habitId;
 
-    @NotNull(message = "completedAt is required.")
-    @PastOrPresent(message = "completedAt must be in the past or present.")
+    @NotNull
     private LocalDateTime completedAt;
 
-    @Size(max = 200, message = "Notes cannot exceed 200 characters.")
+    @Size(max = 255)
     private String notes;
-
-    @NotNull(message = "Progress log is required.")
-    private ProgressLogInputDTO progressLog;
 }
