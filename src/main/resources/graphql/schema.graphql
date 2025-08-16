@@ -49,7 +49,10 @@ type Habit {
 }
 
 type Mutation {
-  registerUser(input: UserInputInput!): UserOutput!  # si ya declaraste esos tipos
+  registerUser(input: UserInputInput!): UserOutput!  
+
+  registerUser(input: UserInputInput!): UserOutput!  
+
   login(email: String!, password: String!): LoginResult!
 }
 type LoginResult { ok: Boolean! }

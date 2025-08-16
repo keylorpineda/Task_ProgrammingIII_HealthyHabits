@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import task.healthyhabits.dtos.inputs.UserInputDTO;
+import task.healthyhabits.dtos.outputs.UserOutputDTO;
+import task.healthyhabits.models.User;
 import task.healthyhabits.dtos.outputs.HabitOutputDTO;
 import task.healthyhabits.dtos.outputs.RoleOutputDTO;
 import task.healthyhabits.dtos.outputs.UserOutputDTO;
@@ -24,6 +26,13 @@ import java.util.Objects;
 public class UserRegistrationService {
 
     private final UserRepository userRepository;
+    private final PasswordHashService passwordHashService;
+
+    @Transactional
+    public UserOutputDTO register(UserInputDTO input) {
+
+        if (userRepository.findByEmail(input.getEmail()).isPresent()) {
+
     private final RoleRepository roleRepository;
     private final HabitRepository habitRepository;
     private final PasswordHashService passwordHashService;
@@ -41,6 +50,15 @@ public class UserRegistrationService {
         user.setName(input.getName());
         user.setEmail(input.getEmail());
         user.setPassword(encoded); 
+
+        return new UserOutputDTO(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                Collections.emptyList(),
+                Collections.emptyList()
+        );
+    }
 
         if (input.getRoles() != null) {
             List<Role> roles = input.getRoles().stream()
