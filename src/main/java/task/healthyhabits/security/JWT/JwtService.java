@@ -73,7 +73,6 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        // Soporta secreto en Base64 o en texto plano (>=32 bytes)
         try {
             byte[] keyBytes = Decoders.BASE64.decode(secret);
             return Keys.hmacShaKeyFor(keyBytes);

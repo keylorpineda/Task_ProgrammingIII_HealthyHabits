@@ -25,7 +25,7 @@ public class AppUserDetails implements UserDetails {
                 .collect(Collectors.toList());
     }
 
-    @Override public String getPassword() { return user.getPassword(); } // hash
+    @Override public String getPassword() { return user.getPassword(); } 
     @Override public String getUsername() { return user.getEmail(); }
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isAccountNonLocked() { return true; }

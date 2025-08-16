@@ -1,13 +1,9 @@
 package task.healthyhabits.services;
 
-import task.healthyhabits.models.CompletedActivity;
 import task.healthyhabits.models.Category;
-
 import task.healthyhabits.repositories.CompletedActivityRepository;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -63,7 +59,7 @@ public class StatsService {
                 .forEach(ca -> {
                     LocalDate d = ca.getCompletedAt().toLocalDate();
                     if (!d.isBefore(start) && !d.isAfter(end) &&
-                        ca.getHabit() != null && ca.getHabit().getCategory() != null) {
+                            ca.getHabit() != null && ca.getHabit().getCategory() != null) {
                         byCategory.merge(ca.getHabit().getCategory(), 1, Integer::sum);
                     }
                 });
