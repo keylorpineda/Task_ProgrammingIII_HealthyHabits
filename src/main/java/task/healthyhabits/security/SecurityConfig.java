@@ -14,7 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import task.healthyhabits.security.jwt.JwtAuthFilter;
+import task.healthyhabits.security.JWT.JwtAuthFilter;
 
 @Configuration
 @EnableMethodSecurity
@@ -29,8 +29,6 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(registry -> registry
-                // GraphQL vive en /graphql; aquí dejamos abierto el endpoint
-                // y protegemos operaciones con @PreAuthorize en los resolvers.
                 .requestMatchers("/graphql").permitAll()
                 .anyRequest().permitAll()
             )
