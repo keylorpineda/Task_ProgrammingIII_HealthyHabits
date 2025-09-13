@@ -11,16 +11,15 @@ import task.healthyhabits.models.Frequency;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReminderInputDTO {
+    @NotNull
+    private Long userId;
 
-    @NotNull(message = "User is required.")
-    private UserInputDTO user;
+    @NotNull
+    private Long habitId;
 
-    @NotNull(message = "Habit is required.")
-    private HabitInputDTO habit;
-
-    @NotNull(message = "Time is required.")
+    @NotNull
     private LocalTime time;
-
-    @NotNull(message = "Frequency is required.")
+    
+    @NotNull
     private Frequency frequency;
 }
