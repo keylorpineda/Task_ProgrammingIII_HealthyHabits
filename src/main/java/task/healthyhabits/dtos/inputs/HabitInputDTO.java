@@ -11,7 +11,6 @@ import task.healthyhabits.models.Category;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HabitInputDTO {
-
     @NotBlank(message = "Name is required.")
     @Size(max = 100, message = "Name cannot exceed 100 characters.")
     private String name;
