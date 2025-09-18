@@ -1,0 +1,472 @@
+﻿schema {
+  query: Query
+  mutation: Mutation
+}
+
+enum Category {
+  PHYSICAL
+  MENTAL
+  SLEEP
+  DIET
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+}
+
+enum DaysOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum Permission {
+  HABIT_READ
+  HABIT_EDITOR
+  ROUTINE_READ
+  ROUTINE_EDITOR
+  REMINDER_READ
+  REMINDER_EDITOR
+  PROGRESS_READ
+  PROGRESS_EDITOR
+  GUIDE_READ
+  GUIDE_EDITOR
+  USER_READ
+  USER_EDITOR
+  AUDITOR
+}
+
+scalar DateTime
+scalar Date
+scalar LocalTime
+
+type Role {
+  id: ID!
+  name: String!
+  permission: Permission!
+}
+
+type Habit {
+  id: ID!
+  name: String!
+  category: Category!
+  description: String!
+}
+
+type Guide {
+  id: ID!
+  title: String!
+  content: String!
+  category: Category!
+  objective: String!
+  recommendedFor: [Habit!]!
+}
+
+type RoutineActivity {
+  id: ID!
+  habit: Habit!
+  duration: Int!
+  targetTime: Int
+  notes: String
+  routine: Routine!
+}
+
+type Routine {
+  id: ID!
+  title: String!
+  description: String!
+  tags: [String!]!
+  daysOfWeek: [DaysOfWeek!]!
+  user: User!
+  activities: [RoutineActivity!]!
+}
+
+type CompletedActivity {
+  id: ID!
+  habit: Habit!
+  completedAt: DateTime!
+  notes: String
+  progressLog: ProgressLog!
+}
+
+type ProgressLog {
+  id: ID!
+  date: Date!
+  user: User!
+  routine: Routine!
+  completedActivities: [CompletedActivity!]!
+}
+
+type Reminder {
+  id: ID!
+  user: User!
+  habit: Habit!
+  time: LocalTime!
+  frequency: Frequency!
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  roles: [Role!]!
+  favoriteHabits: [Habit!]!
+  coach: User
+}
+
+type RolePage {
+  content: [Role!]!
+  totalPages: Int!
+  totalElements: Int!
+  size: Int!
+  number: Int!
+}
+
+type HabitPage {
+  content: [Habit!]!
+  totalPages: Int!
+  totalElements: Int!
+  size: Int!
+  number: Int!
+}
+
+type GuidePage {
+  content: [Guide!]!
+  totalPages: Int!
+  totalElements: Int!
+  size: Int!
+  number: Int!
+}
+
+type RoutineActivityPage {
+  content: [RoutineActivity!]!
+  totalPages: Int!
+  totalElements: Int!
+  size: Int!
+  number: Int!
+}
+
+type RoutinePage {
+  content: [Routine!]!
+  totalPages: Int!
+  totalElements: Int!
+  size: Int!
+  number: Int!
+}
+
+type ProgressLogPage {
+  content: [ProgressLog!]!
+  totalPages: Int!
+  totalElements: Int!
+  size: Int!
+  number: Int!
+}
+
+type CompletedActivityPage {
+  content: [CompletedActivity!]!
+  totalPages: Int!
+  totalElements: Int!
+  size: Int!
+  number: Int!
+}
+
+type ReminderPage {
+  content: [Reminder!]!
+  totalPages: Int!
+  totalElements: Int!
+  size: Int!
+  number: Int!
+}
+
+type UserPage {
+  content: [User!]!
+  totalPages: Int!
+  totalElements: Int!
+  size: Int!
+  number: Int!
+}
+
+type CategoryCount {
+  category: Category!
+  count: Int!
+}
+
+type MonthlyStat {
+  month: Int!
+  year: Int!
+  byCategory: [CategoryCount!]!
+}
+
+type DailyProgress {
+  date: Date!
+  completedCount: Int!
+}
+
+type WeeklyProgress {
+  weekStart: Date!
+  daily: [DailyProgress!]!
+}
+
+input RegisterInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input RoleInput {
+  name: String!
+  permission: Permission!
+}
+
+input HabitInput {
+  name: String!
+  category: Category!
+  description: String!
+}
+
+input GuideInput {
+  title: String!
+  content: String!
+  category: Category!
+  objective: String!
+  recommendedHabitIds: [ID!]!
+}
+
+input RoutineInput {
+  title: String!
+  description: String!
+  tags: [String!]
+  daysOfWeek: [DaysOfWeek!]!
+  userId: ID!
+  activityInputs: [RoutineActivityInput!]!
+}
+
+input RoutineActivityInput {
+  habitId: ID!
+  duration: Int!
+  targetTime: Int!
+  notes: String
+}
+
+input CompletedActivityInput {
+  habitId: ID!
+  completedAt: DateTime!
+  notes: String
+}
+
+input ProgressLogInput {
+  userId: ID!
+  routineId: ID!
+  date: Date!
+  completedActivityInputs: [CompletedActivityInput!]!
+}
+
+input ReminderInput {
+  userId: ID!
+  habitId: ID!
+  time: LocalTime!
+  frequency: Frequency!
+}
+
+input UserInput {
+  name: String!
+  email: String!
+  password: String!
+  roles: [RoleInput!]!
+  favoriteHabits: [HabitInput!]!
+  coachId: ID
+}
+
+type AuthTokenOutput {
+  token: ID!
+  expiresAt: DateTime!
+  user: UserOutput!
+}
+
+type RoleOutput {
+  id: ID!
+  name: String!
+  permission: Permission!
+}
+
+type HabitOutput {
+  id: ID!
+  name: String!
+  category: Category!
+  description: String!
+}
+
+type GuideOutput {
+  id: ID!
+  title: String!
+  content: String!
+  category: Category!
+  objective: String!
+  recommendedFor: [HabitOutput!]!
+}
+
+type RoutineActivityOutput {
+  id: ID!
+  habit: HabitOutput!
+  duration: Int!
+  targetTime: Int
+  notes: String
+  routine: RoutineOutput!
+}
+
+type RoutineOutput {
+  id: ID!
+  title: String!
+  user: UserOutput!
+  description: String!
+  tags: [String!]!
+  daysOfWeek: [DaysOfWeek!]!
+  activities: [RoutineActivityOutput!]!
+}
+
+type ProgressLogOutput {
+  id: ID!
+  date: Date!
+  user: UserOutput!
+  routine: RoutineOutput!
+  completedActivities: [CompletedActivityOutput!]!
+}
+
+type CompletedActivityOutput {
+  id: ID!
+  habit: HabitOutput!
+  completedAt: DateTime!
+  notes: String
+  progressLog: ProgressLogOutput!
+}
+
+type ReminderOutput {
+  id: ID!
+  time: LocalTime!
+  frequency: Frequency!
+  user: UserOutput!
+  habit: HabitOutput!
+}
+
+type UserOutput {
+  id: ID!
+  name: String!
+  email: String!
+  roles: [RoleOutput!]!
+  favoriteHabits: [HabitOutput!]!
+  coach: UserOutput
+}
+
+type Query {
+  getCurrentUser: User!
+  listUsers(page: Int!, size: Int!): UserPage!
+
+  listRoles(page: Int!, size: Int!): RolePage!
+  getRoleById(id: ID!): Role
+
+  listHabits(page: Int!, size: Int!): HabitPage!
+  listHabitsByCategory(category: Category!, page: Int!, size: Int!): HabitPage!
+  getHabitById(id: ID!): Habit
+
+  listGuides(page: Int!, size: Int!): GuidePage!
+  listGuidesByObjective(objective: String!, page: Int!, size: Int!): GuidePage!
+  listRecommendedGuides(category: Category, forUserId: ID!, page: Int!, size: Int!): GuidePage!
+  getGuideById(id: ID!): Guide
+
+  listRoutines(page: Int!, size: Int!): RoutinePage!
+  listMyRoutines(page: Int!, size: Int!): RoutinePage!
+  listRoutinesByUser(userId: ID!, page: Int!, size: Int!): RoutinePage!
+  getRoutineById(id: ID!): Routine
+
+  listRoutineActivities(page: Int!, size: Int!): RoutineActivityPage!
+  getRoutineActivityById(id: ID!): RoutineActivity
+
+  listProgressLogs(page: Int!, size: Int!): ProgressLogPage!
+  getProgressLogByDate(userId: ID!, date: Date!): ProgressLog
+  listProgressLogsByDateRange(
+    userId: ID!
+    from: Date!
+    to: Date!
+    page: Int!
+    size: Int!
+  ): ProgressLogPage!
+  getWeeklyStats(userId: ID!, weekStart: Date!): WeeklyProgress!
+  getMonthlyStats(userId: ID!, month: Int!, year: Int!): [MonthlyStat!]!
+  getProgressLogById(id: ID!): ProgressLog
+
+  listCompletedActivities(page: Int!, size: Int!): CompletedActivityPage!
+  getCompletedActivityById(id: ID!): CompletedActivity
+
+  listReminders(page: Int!, size: Int!): ReminderPage!
+  listMyReminders(page: Int!, size: Int!): ReminderPage!
+  getReminderById(id: ID!): Reminder
+
+  listMyFavoriteHabits(page: Int!, size: Int!): HabitPage!
+
+  verifyToken(token: String!): AuthTokenOutput
+
+  listMyStudents(page: Int!, size: Int!): UserPage!
+}
+
+type Mutation {
+  register(input: RegisterInput!): AuthTokenOutput!
+  login(input: LoginInput!): AuthTokenOutput!
+
+  createUser(input: UserInput!): UserOutput!
+  updateUser(id: ID!, input: UserInput!): UserOutput!
+  deleteUser(id: ID!): Boolean!
+
+  createRole(input: RoleInput!): RoleOutput!
+  updateRole(id: ID!, input: RoleInput!): RoleOutput!
+  deleteRole(id: ID!): Boolean!
+
+  createHabit(input: HabitInput!): HabitOutput!
+  updateHabit(id: ID!, input: HabitInput!): HabitOutput!
+  deleteHabit(id: ID!): Boolean!
+
+  createGuide(input: GuideInput!): GuideOutput!
+  updateGuide(id: ID!, input: GuideInput!): GuideOutput!
+  deleteGuide(id: ID!): Boolean!
+
+  createRoutine(input: RoutineInput!): RoutineOutput!
+  updateRoutine(id: ID!, input: RoutineInput!): RoutineOutput!
+  deleteRoutine(id: ID!): Boolean!
+
+  createRoutineActivity(
+    routineId: ID!
+    input: RoutineActivityInput!
+  ): RoutineActivityOutput!
+  updateRoutineActivity(
+    id: ID!
+    input: RoutineActivityInput!
+  ): RoutineActivityOutput!
+  deleteRoutineActivity(id: ID!): Boolean!
+
+  createProgressLog(input: ProgressLogInput!): ProgressLogOutput!
+  updateProgressLog(id: ID!, input: ProgressLogInput!): ProgressLogOutput!
+  deleteProgressLog(id: ID!): Boolean!
+
+  createCompletedActivity(
+    progressLogId: ID!
+    input: CompletedActivityInput!
+  ): CompletedActivityOutput!
+  updateCompletedActivity(
+    id: ID!
+    input: CompletedActivityInput!
+  ): CompletedActivityOutput!
+  deleteCompletedActivity(id: ID!): Boolean!
+
+  createReminder(input: ReminderInput!): ReminderOutput!
+  updateReminder(id: ID!, input: ReminderInput!): ReminderOutput!
+  deleteReminder(id: ID!): Boolean!
+}
