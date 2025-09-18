@@ -11,18 +11,22 @@ import task.healthyhabits.models.Category;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GuideInputDTO {
-
-    @NotBlank(message = "Title is required.")
-    @Size(max = 100, message = "Title cannot exceed 100 characters.")
+    @NotBlank
+    @Size(max = 100)
     private String title;
 
-    @NotBlank(message = "Content is required.")
-    @Size(max = 500, message = "Content cannot exceed 500 characters.")
+    @NotBlank
+    @Size(max = 500)
     private String content;
 
-    @NotNull(message = "Category is required.")
+    @NotNull
     private Category category;
 
-    @NotNull(message = "Recommended habits list cannot be null.")
-    private List<HabitInputDTO> recommendedFor;
+    @NotBlank
+    @Size(max = 100)
+    private String objective;
+    
+    @NotNull
+    @Size(min = 0)
+    private List<Long> recommendedHabitIds;
 }

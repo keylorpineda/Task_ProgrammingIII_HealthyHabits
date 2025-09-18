@@ -1,0 +1,32 @@
+{"properties": [
+  {
+    "name": "security.jwt.secret",
+    "type": "java.lang.String",
+    "description": "JWT secret (Base64 ≥ 32 bytes)"
+  },
+  {
+    "name": "security.jwt.expiration-ms",
+    "type": "java.lang.Long",
+    "description": "JWT expiration in ms"
+  },
+  {
+    "name": "security.jwt.issuer",
+    "type": "java.lang.String",
+    "description": "JWT issuer"
+  },
+  {
+    "name": "security.jwt.audience",
+    "type": "java.lang.String",
+    "description": "JWT audience"
+  },
+  {
+    "name": "security.password.pepper",
+    "type": "java.lang.String",
+    "description": "Server-side pepper"
+  },
+  {
+    "name": "spring.graphql.graphiql.cdn.enabled",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.graphql.graphiql.cdn.enabled'"
+  }
+]}

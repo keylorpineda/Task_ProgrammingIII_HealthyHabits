@@ -12,7 +12,6 @@ import task.healthyhabits.dtos.outputs.UserOutputDTO;
 import task.healthyhabits.models.Habit;
 import task.healthyhabits.models.Role;
 import task.healthyhabits.models.User;
-
 import task.healthyhabits.repositories.HabitRepository;
 import task.healthyhabits.repositories.RoleRepository;
 import task.healthyhabits.repositories.UserRepository;
@@ -29,10 +28,12 @@ public class UserRegistrationService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final HabitRepository habitRepository;
-    private final PasswordHashService passwordHashService;
 
     @Transactional
     public UserOutputDTO register(UserInputDTO input) {
+        if (input == null)
+            throw new IllegalArgumentException("Input is required");
+
         if (userRepository.existsByEmail(input.getEmail())) {
             throw new IllegalArgumentException("Email already registered");
         }
@@ -54,9 +55,10 @@ public class UserRegistrationService {
                             }))
                     .toList();
             user.setRoles(roles);
+        } else {
+            user.setRoles(Collections.emptyList());
         }
 
-        // Mapear hábitos favoritos (crear a partir del DTO)
         if (input.getFavoriteHabits() != null && !input.getFavoriteHabits().isEmpty()) {
             List<Habit> habits = input.getFavoriteHabits().stream()
                     .map(hdto -> {
@@ -76,22 +78,17 @@ public class UserRegistrationService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                toRoleOutputs(user.getRoles()),
-                toHabitOutputs(user.getFavoriteHabits())
-        );
+                user.getRoles().stream()
+                        .map(r -> new task.healthyhabits.dtos.outputs.RoleOutputDTO(r.getId(), r.getName(),
+                                r.getPermissions()))
+                        .toList(),
+                user.getFavoriteHabits().stream()
+                        .map(h -> new task.healthyhabits.dtos.outputs.HabitOutputDTO(h.getId(), h.getName(),
+                                h.getCategory(), h.getDescription()))
+                        .toList());
     }
 
-    private List<RoleOutputDTO> toRoleOutputs(List<Role> roles) {
-        if (roles == null) return Collections.emptyList();
-        return roles.stream()
-                .map(r -> new RoleOutputDTO(r.getId(), r.getName(), r.getPermissions()))
-                .toList();
-    }
-
-    private List<HabitOutputDTO> toHabitOutputs(List<Habit> habits) {
-        if (habits == null) return Collections.emptyList();
-        return habits.stream()
-                .map(h -> new HabitOutputDTO(h.getId(), h.getName(), h.getCategory(), h.getDescription()))
-                .toList();
+    public String generateEncodedPasswordForRegistration(String plainPassword) {
+        return passwordHashService.encode(plainPassword);
     }
 }

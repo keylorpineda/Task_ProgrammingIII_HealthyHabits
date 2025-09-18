@@ -3,17 +3,21 @@ package task.healthyhabits.services;
 import task.healthyhabits.models.User;
 import task.healthyhabits.models.Habit;
 import task.healthyhabits.models.Role;
-import task.healthyhabits.models.AuthToken;
 
 import task.healthyhabits.repositories.UserRepository;
-import task.healthyhabits.repositories.AuthTokenRepository;
+
 import task.healthyhabits.mappers.MapperForUser;
 import task.healthyhabits.mappers.MapperForHabit;
 import task.healthyhabits.mappers.MapperForRole;
+
 import task.healthyhabits.dtos.inputs.UserInputDTO;
 import task.healthyhabits.dtos.normals.UserDTO;
 import task.healthyhabits.dtos.normals.HabitDTO;
 import task.healthyhabits.dtos.outputs.UserOutputDTO;
+
+import task.healthyhabits.security.hash.PasswordHashService;
+import task.healthyhabits.security.JWT.JwtService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
@@ -30,18 +34,33 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final AuthTokenRepository authTokenRepository;
+    private final PasswordHashService passwordHashService;
+    private final JwtService jwtService;
 
-    public UserService(UserRepository userRepository, AuthTokenRepository authTokenRepository) {
+    public UserService(UserRepository userRepository,
+            PasswordHashService passwordHashService,
+            JwtService jwtService) {
         this.userRepository = userRepository;
-        this.authTokenRepository = authTokenRepository;
+        this.passwordHashService = passwordHashService;
+        this.jwtService = jwtService;
     }
 
     @Transactional(readOnly = true)
-    public UserDTO me(String token) {
-        AuthToken at = authTokenRepository.findById(token)
-                .orElseThrow(() -> new NoSuchElementException("Invalid token"));
-        return MapperForUser.toDTO(at.getUser());
+    public UserDTO getCurrentUser(String bearerToken) {
+        if (bearerToken == null || bearerToken.isBlank()) {
+            throw new NoSuchElementException("Missing token");
+        }
+        String token = bearerToken.startsWith("Bearer ") ? bearerToken.substring("Bearer ".length()) : bearerToken;
+
+        String email = jwtService.extractUsername(token);
+        if (email == null || email.isBlank()) {
+            throw new NoSuchElementException("Invalid token");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("User not found for token subject"));
+
+        return MapperForUser.toDTO(user);
     }
 
     @Transactional(readOnly = true)
@@ -50,7 +69,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Page<HabitDTO> myFavorites(Long userId, Pageable pageable) {
+    public Page<HabitDTO> listMyFavoriteHabits(Long userId, Pageable pageable) {
         User u = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
 
@@ -63,6 +82,10 @@ public class UserService {
 
     public UserOutputDTO create(UserInputDTO input) {
         User user = MapperForUser.toModel(input);
+
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            user.setPassword(passwordHashService.encode(user.getPassword()));
+        }
 
         if (user.getRoles() == null)
             user.setRoles(new ArrayList<Role>());
@@ -79,13 +102,18 @@ public class UserService {
 
         user.setName(input.getName());
         user.setEmail(input.getEmail());
-        user.setPassword(input.getPassword());
 
-        List<Role> roles = (input.getRoles() == null) ? new ArrayList<>()
+        if (input.getPassword() != null && !input.getPassword().isBlank()) {
+            user.setPassword(passwordHashService.encode(input.getPassword()));
+        }
+
+        List<Role> roles = (input.getRoles() == null)
+                ? new ArrayList<>()
                 : input.getRoles().stream().map(MapperForRole::toModel).collect(Collectors.toList());
         user.setRoles(roles);
 
-        List<Habit> favs = (input.getFavoriteHabits() == null) ? new ArrayList<>()
+        List<Habit> favs = (input.getFavoriteHabits() == null)
+                ? new ArrayList<>()
                 : input.getFavoriteHabits().stream().map(MapperForHabit::toModel).collect(Collectors.toList());
         user.setFavoriteHabits(favs);
 
@@ -105,7 +133,7 @@ public class UserService {
         int size = pageable.getPageSize();
 
         if (offset >= all.size()) {
-            return new PageImpl<>(List.of(), pageable, all.size());
+            return new PageImpl<>(new ArrayList<>(), pageable, all.size());
         }
         List<T> content = all.stream()
                 .skip(offset)

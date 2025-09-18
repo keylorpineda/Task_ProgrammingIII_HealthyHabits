@@ -21,7 +21,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -52,6 +51,7 @@ public class GuideService {
 
     @Transactional(readOnly = true)
     public Page<GuideDTO> recommended(Category category, Long forUserId, Pageable pageable) {
+
         if (category != null) {
             List<GuideDTO> filtered = guideRepository.findAll().stream()
                     .filter(g -> g.getCategory() == category)
@@ -59,17 +59,24 @@ public class GuideService {
                     .collect(Collectors.toList());
             return paginate(filtered, pageable);
         }
+
         User u = userRepository.findById(forUserId)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
-        Set<Long> favIds = u.getFavoriteHabits().stream().map(Habit::getId).collect(Collectors.toSet());
+
+        Set<Long> favIds = u.getFavoriteHabits().stream()
+                .map(Habit::getId)
+                .collect(Collectors.toSet());
+
         if (favIds.isEmpty()) {
             return new PageImpl<>(List.of(), pageable, 0);
         }
+
         List<GuideDTO> filtered = guideRepository.findAll().stream()
-                .filter(g -> g.getRecommendedFor() != null
-                        && g.getRecommendedFor().stream().anyMatch(h -> favIds.contains(h.getId())))
+                .filter(g -> g.getRecommendedFor() != null &&
+                        g.getRecommendedFor().stream().anyMatch(h -> favIds.contains(h.getId())))
                 .map(MapperForGuide::toDTO)
                 .collect(Collectors.toList());
+
         return paginate(filtered, pageable);
     }
 
@@ -79,37 +86,41 @@ public class GuideService {
         g.setContent(input.getContent());
         g.setCategory(input.getCategory());
         List<Habit> rec = (input.getRecommendedFor() == null)
-                ? new ArrayList<>()
-                : input.getRecommendedFor().stream().map(MapperForHabit::toModel).collect(Collectors.toList());
+                ? List.of()
+                : input.getRecommendedFor().stream()
+                        .map(MapperForHabit::toModel)
+                        .collect(Collectors.toList());
+
         g.setRecommendedFor(rec);
+
         return MapperForGuide.toOutput(guideRepository.save(g));
     }
 
     public GuideOutputDTO update(Long id, GuideInputDTO input) {
         Guide g = guideRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Guide not found"));
+
         g.setTitle(input.getTitle());
         g.setContent(input.getContent());
         g.setCategory(input.getCategory());
-        List<Habit> rec = (input.getRecommendedFor() == null)
-                ? new ArrayList<>()
-                : input.getRecommendedFor().stream().map(MapperForHabit::toModel).collect(Collectors.toList());
-        g.setRecommendedFor(rec);
-        return MapperForGuide.toOutput(guideRepository.save(g));
-    }
 
-    public boolean delete(Long id) {
-        if (!guideRepository.existsById(id))
-            return false;
-        guideRepository.deleteById(id);
-        return true;
+        List<Habit> rec = (input.getRecommendedFor() == null)
+                ? List.of()
+                : input.getRecommendedFor().stream()
+                        .map(MapperForHabit::toModel)
+                        .collect(Collectors.toList());
+
+        g.setRecommendedFor(rec);
+
+        return MapperForGuide.toOutput(guideRepository.save(g));
     }
 
     private static <T> Page<T> paginate(List<T> all, Pageable pageable) {
         int offset = (int) pageable.getOffset();
         int size = pageable.getPageSize();
-        if (offset >= all.size())
+        if (offset >= all.size()) {
             return new PageImpl<>(List.of(), pageable, all.size());
+        }
         List<T> content = all.stream().skip(offset).limit(size).collect(Collectors.toList());
         return new PageImpl<>(content, pageable, all.size());
     }

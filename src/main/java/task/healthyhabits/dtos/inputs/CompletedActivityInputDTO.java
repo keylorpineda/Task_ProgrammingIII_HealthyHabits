@@ -1,6 +1,6 @@
 package task.healthyhabits.dtos.inputs;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -12,12 +12,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompletedActivityInputDTO {
-
     @NotNull
     private Long habitId;
 
     @NotNull
-    private LocalDateTime completedAt;
+    private OffsetDateTime completedAt;
 
     @Size(max = 255)
     private String notes;
