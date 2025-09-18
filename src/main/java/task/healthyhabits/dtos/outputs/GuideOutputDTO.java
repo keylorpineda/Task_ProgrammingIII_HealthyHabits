@@ -14,5 +14,6 @@ public class GuideOutputDTO {
     private String title;
     private String content;
     private Category category;
+    private String objective;
     private List<HabitOutputDTO> recommendedFor;
 }
