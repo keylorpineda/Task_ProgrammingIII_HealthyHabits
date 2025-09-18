@@ -2,13 +2,16 @@ package task.healthyhabits.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDate;
 import java.util.List;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "progress_logs")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProgressLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

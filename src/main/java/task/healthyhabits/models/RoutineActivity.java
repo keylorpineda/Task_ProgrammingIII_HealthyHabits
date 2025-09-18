@@ -2,11 +2,13 @@ package task.healthyhabits.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.util.List;
-
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 @Entity
 @Table(name = "routine_activities")
 @Data
+@NoArgsConstructor 
+@AllArgsConstructor 
 public class RoutineActivity {
 
     @Id
@@ -18,11 +20,11 @@ public class RoutineActivity {
     @JoinColumn(name = "habit_id", nullable = false)
     private Habit habit;
 
-    @Column(name = "duration", nullable = false, length = 50)
-    private String duration;
+    @Column(name = "duration", nullable = false) 
+    private Integer duration;
 
-    @Column(name = "target_time", nullable = false, length = 50)
-    private String targetTime;
+    @Column(name = "target_time", nullable = false)
+    private Integer targetTime;
 
     @Column(name = "notes", length = 255)
     private String notes;

@@ -1,11 +1,16 @@
 package task.healthyhabits.models;
+
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.util.List;
 
 @Entity
 @Table(name = "guides")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Guide {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,14 +23,14 @@ public class Guide {
     @Column(name = "content", nullable = false, length = 500)
     private String content;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
     private Category category;
 
-    @ManyToMany
-    @JoinTable(
-        name = "guide_habit",
-        joinColumns = @JoinColumn(name = "guide_id"),
-        inverseJoinColumns = @JoinColumn(name = "habit_id")
-    )
+    @Column(name = "objective", nullable = false, length = 100)
+    private String objective;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "guide_habit", joinColumns = @JoinColumn(name = "guide_id"), inverseJoinColumns = @JoinColumn(name = "habit_id"))
     private List<Habit> recommendedFor;
 }
