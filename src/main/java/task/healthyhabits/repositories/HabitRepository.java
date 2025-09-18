@@ -12,5 +12,7 @@ import task.healthyhabits.models.Category;
 public interface HabitRepository extends JpaRepository<Habit, Long> {
     Page<Habit> findAllByCategory(Category category, Pageable pageable);
 
+    Optional<Habit> findByNameAndCategory(String name, Category category);
+
     Optional<Habit> findByName(String name);
 }

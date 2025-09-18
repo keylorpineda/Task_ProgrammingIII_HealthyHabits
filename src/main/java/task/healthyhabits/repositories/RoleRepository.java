@@ -2,9 +2,12 @@ package task.healthyhabits.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import task.healthyhabits.models.Permission;
 import task.healthyhabits.models.Role;
 import java.util.Optional;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
     Optional<Role> findByName(String name);
+    Optional<Role> findByPermission(Permission permission);
 }
