@@ -3,7 +3,7 @@ package task.healthyhabits.dtos.normals;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @NoArgsConstructor
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class CompletedActivityDTO {
     private Long id;
     private HabitDTO habit;
-    private LocalDateTime completedAt;
+    private OffsetDateTime completedAt;
     private String notes;
     private ProgressLogDTO progressLog;
 }

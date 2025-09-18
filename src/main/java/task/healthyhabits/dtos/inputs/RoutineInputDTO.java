@@ -12,12 +12,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoutineInputDTO {
-
     @NotBlank(message = "Name is required.") @Size(max = 100)
     private String title;
 
     @NotBlank @Size(max = 200)
     private String description;
+
+    private List<String> tags;
 
     @NotNull @Size(min = 1)
     private List<DaysOfWeek> daysOfWeek;

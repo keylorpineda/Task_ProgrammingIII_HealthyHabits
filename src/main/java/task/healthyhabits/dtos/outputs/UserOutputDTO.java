@@ -12,6 +12,7 @@ public class UserOutputDTO {
     private Long id;
     private String name;
     private String email;
-    private List<RoleOutputDTO> roles;           
+    private List<RoleOutputDTO> roles;
     private List<HabitOutputDTO> favoriteHabits;
+    private Long coachId;
 }

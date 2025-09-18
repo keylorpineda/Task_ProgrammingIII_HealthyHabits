@@ -12,14 +12,12 @@ public class RoutineActivityInputDTO {
     @NotNull
     private Long habitId;
 
-    @NotBlank
-    @Size(max = 50)
-    private String duration;
+    @NotNull @Min(1)
+    private Integer duration;
 
-    @NotBlank
-    @Size(max = 50)
-    private String targetTime;
-    
+    @NotNull @Min(0)
+    private Integer targetTime;
+
     @Size(max = 255)
     private String notes;
 }

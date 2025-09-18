@@ -15,6 +15,7 @@ public class RoutineOutputDTO {
     private String title;
     private UserOutputDTO user;
     private String description;
+    private List<String> tags;
     private List<DaysOfWeek> daysOfWeek;
     private List<RoutineActivityOutputDTO> activities;
 }
