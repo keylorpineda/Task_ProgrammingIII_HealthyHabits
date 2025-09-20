@@ -5,8 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import task.healthyhabits.models.Category;
 import task.healthyhabits.repositories.CompletedActivityRepository;
-import task.healthyhabits.services.stats.StatsService;
-
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;

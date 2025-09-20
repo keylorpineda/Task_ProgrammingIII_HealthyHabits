@@ -14,7 +14,6 @@ import task.healthyhabits.models.RoutineActivity;
 import task.healthyhabits.repositories.HabitRepository;
 import task.healthyhabits.repositories.RoutineActivityRepository;
 import task.healthyhabits.repositories.RoutineRepository;
-import task.healthyhabits.services.routineActivity.RoutineActivityService;
 import task.healthyhabits.transformers.GenericMapperFactory;
 import task.healthyhabits.transformers.InputOutputMapper;
 

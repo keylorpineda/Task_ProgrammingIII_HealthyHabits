@@ -19,7 +19,6 @@ import task.healthyhabits.repositories.HabitRepository;
 import task.healthyhabits.repositories.ProgressLogRepository;
 import task.healthyhabits.repositories.RoutineRepository;
 import task.healthyhabits.repositories.UserRepository;
-import task.healthyhabits.services.progressLog.ProgressLogService;
 import task.healthyhabits.transformers.GenericMapperFactory;
 import task.healthyhabits.transformers.InputOutputMapper;
 

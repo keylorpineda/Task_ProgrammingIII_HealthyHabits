@@ -1,8 +1,6 @@
 package task.healthyhabits.exceptions;
 
-/**
- * Raised when a requested habit identifier cannot be resolved.
- */
+
 public class HabitNotFoundException extends BusinessException {
 
     private static final String DEFAULT_MESSAGE = "Habit not found.";

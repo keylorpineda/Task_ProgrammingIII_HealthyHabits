@@ -2,7 +2,6 @@ package task.healthyhabits.services.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +16,6 @@ import task.healthyhabits.dtos.outputs.UserOutputDTO;
 import task.healthyhabits.models.*;
 import task.healthyhabits.repositories.*;
 import task.healthyhabits.security.hash.PasswordHashService;
-import task.healthyhabits.services.user.UserService;
 import task.healthyhabits.transformers.GenericMapperFactory;
 import task.healthyhabits.transformers.InputOutputMapper;
 

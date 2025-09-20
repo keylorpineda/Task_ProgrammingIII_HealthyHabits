@@ -1,8 +1,5 @@
 package task.healthyhabits.exceptions;
 
-/**
- * Signifies that a routine transition request violates the routine's lifecycle rules.
- */
 public class RoutineStateInvalidException extends BusinessException {
 
     private static final String DEFAULT_MESSAGE = "Routine cannot transition to the requested state.";

@@ -1,8 +1,5 @@
 package task.healthyhabits.exceptions;
 
-/**
- * Indicates a user attempted to favorite a habit that is already marked as a favorite.
- */
 public class DuplicateFavoriteException extends BusinessException {
 
     private static final String DEFAULT_MESSAGE = "Habit is already in favorites.";

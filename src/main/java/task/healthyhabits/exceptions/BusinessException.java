@@ -4,10 +4,6 @@ import java.util.Objects;
 
 import org.springframework.util.StringUtils;
 
-/**
- * Base runtime exception for business/domain failures that need consistent
- * GraphQL metadata.
- */
 public class BusinessException extends RuntimeException {
 
     private final ErrorCode errorCode;

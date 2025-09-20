@@ -1,8 +1,5 @@
 package task.healthyhabits.exceptions;
 
-/**
- * Thrown when a reminder cannot be scheduled because another reminder overlaps its time.
- */
 public class ReminderTimeConflictException extends BusinessException {
 
     private static final String DEFAULT_MESSAGE = "Reminder time conflicts with an existing reminder.";

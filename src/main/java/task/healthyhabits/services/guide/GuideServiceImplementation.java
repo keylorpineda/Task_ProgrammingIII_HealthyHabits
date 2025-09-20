@@ -16,7 +16,6 @@ import task.healthyhabits.models.User;
 import task.healthyhabits.repositories.GuideRepository;
 import task.healthyhabits.repositories.HabitRepository;
 import task.healthyhabits.repositories.UserRepository;
-import task.healthyhabits.services.guide.GuideService;
 import task.healthyhabits.transformers.GenericMapperFactory;
 import task.healthyhabits.transformers.InputOutputMapper;
 

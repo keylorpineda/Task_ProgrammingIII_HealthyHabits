@@ -11,7 +11,6 @@ import task.healthyhabits.dtos.outputs.RoleOutputDTO;
 import task.healthyhabits.models.Permission;
 import task.healthyhabits.models.Role;
 import task.healthyhabits.repositories.RoleRepository;
-import task.healthyhabits.services.role.RoleService;
 import task.healthyhabits.transformers.GenericMapperFactory;
 import task.healthyhabits.transformers.InputOutputMapper;
 

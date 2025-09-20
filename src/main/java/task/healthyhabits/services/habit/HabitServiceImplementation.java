@@ -11,7 +11,6 @@ import task.healthyhabits.dtos.outputs.HabitOutputDTO;
 import task.healthyhabits.models.Category;
 import task.healthyhabits.models.Habit;
 import task.healthyhabits.repositories.HabitRepository;
-import task.healthyhabits.services.habit.HabitService;
 import task.healthyhabits.transformers.GenericMapperFactory;
 import task.healthyhabits.transformers.InputOutputMapper;
 
