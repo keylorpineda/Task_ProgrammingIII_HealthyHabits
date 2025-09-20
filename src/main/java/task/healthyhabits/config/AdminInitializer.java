@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import task.healthyhabits.models.User;
 import task.healthyhabits.repositories.RoleRepository;
 import task.healthyhabits.repositories.UserRepository;
@@ -11,6 +13,7 @@ import task.healthyhabits.security.hash.PasswordHashService;
 
 @Component
 @RequiredArgsConstructor
+@Order(Ordered.LOWEST_PRECEDENCE)
 public class AdminInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
