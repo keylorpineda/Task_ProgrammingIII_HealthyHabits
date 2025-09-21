@@ -53,9 +53,23 @@ public class GuideQueryResolver {
         return guideService.findByIdOrNull(id);
     }
 
-    public record GuidePage(List<GuideDTO> content, int totalPages, long totalElements, int size, int number) {
+    public record GuidePage(
+            List<GuideDTO> content,
+            int totalPages,
+            long totalElements,
+            int size,
+            int number,
+            boolean hasNext,
+            boolean hasPrevious) {
         public static GuidePage from(PageDTO<GuideDTO> dto) {
-            return new GuidePage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+            return new GuidePage(
+                    dto.content(),
+                    dto.totalPages(),
+                    dto.totalElements(),
+                    dto.size(),
+                    dto.number(),
+                    dto.hasNext(),
+                    dto.hasPrevious());
         }
     }
 }

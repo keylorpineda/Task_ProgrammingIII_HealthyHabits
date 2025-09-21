@@ -22,5 +22,7 @@ class PageDTOTest {
         assertThat(dto.totalElements()).isEqualTo(page.getTotalElements());
         assertThat(dto.size()).isEqualTo(page.getSize());
         assertThat(dto.number()).isEqualTo(page.getNumber());
+        assertThat(dto.hasNext()).isEqualTo(page.hasNext());
+        assertThat(dto.hasPrevious()).isEqualTo(page.hasPrevious());
     }
 }

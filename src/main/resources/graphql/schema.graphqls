@@ -123,9 +123,11 @@ type User {
 type RolePage {
   content: [Role!]!
   totalPages: Int!
- totalElements: Long!
+  totalElements: Long!
   size: Int!
   number: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
 }
 
 type HabitPage {
@@ -134,6 +136,8 @@ type HabitPage {
   totalElements: Long!
   size: Int!
   number: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
 }
 
 type GuidePage {
@@ -142,6 +146,8 @@ type GuidePage {
   totalElements: Long!
   size: Int!
   number: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
 }
 
 type RoutineActivityPage {
@@ -150,6 +156,8 @@ type RoutineActivityPage {
   totalElements: Long!
   size: Int!
   number: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
 }
 
 type RoutinePage {
@@ -158,6 +166,8 @@ type RoutinePage {
   totalElements: Long!
   size: Int!
   number: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
 }
 
 type ProgressLogPage {
@@ -166,6 +176,8 @@ type ProgressLogPage {
   totalElements: Long!
   size: Int!
   number: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
 }
 
 type CompletedActivityPage {
@@ -174,6 +186,8 @@ type CompletedActivityPage {
   totalElements: Long!
   size: Int!
   number: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
 }
 
 type ReminderPage {
@@ -182,6 +196,8 @@ type ReminderPage {
   totalElements: Long!
   size: Int!
   number: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
 }
 
 type UserPage {
@@ -190,6 +206,8 @@ type UserPage {
   totalElements: Long!
   size: Int!
   number: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
 }
 
 type CategoryCount {

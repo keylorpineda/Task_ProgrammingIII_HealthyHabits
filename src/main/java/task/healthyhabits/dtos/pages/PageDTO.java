@@ -7,8 +7,17 @@ public record PageDTO<T>(
         int totalPages,
         long totalElements,
         int size,
-        int number) {
+        int number,
+        boolean hasNext,
+        boolean hasPrevious) {
     public static <T> PageDTO<T> from(org.springframework.data.domain.Page<T> p) {
-        return new PageDTO<>(p.getContent(), p.getTotalPages(), p.getTotalElements(), p.getSize(), p.getNumber());
+        return new PageDTO<>(
+                p.getContent(),
+                p.getTotalPages(),
+                p.getTotalElements(),
+                p.getSize(),
+                p.getNumber(),
+                p.hasNext(),
+                p.hasPrevious());
     }
 }

@@ -58,9 +58,23 @@ public class RoutineQueryResolver {
         return routineService.findByIdOrNull(id);
     }
 
-    public record RoutinePage(List<RoutineDTO> content, int totalPages, long totalElements, int size, int number) {
+    public record RoutinePage(
+            List<RoutineDTO> content,
+            int totalPages,
+            long totalElements,
+            int size,
+            int number,
+            boolean hasNext,
+            boolean hasPrevious) {
         public static RoutinePage from(PageDTO<RoutineDTO> dto) {
-            return new RoutinePage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+            return new RoutinePage(
+                    dto.content(),
+                    dto.totalPages(),
+                    dto.totalElements(),
+                    dto.size(),
+                    dto.number(),
+                    dto.hasNext(),
+                    dto.hasPrevious());
         }
     }
 }

@@ -35,9 +35,23 @@ public class RoleQueryResolver {
         return roleService.findByIdOrNull(id);
     }
 
-    public record RolePage(List<RoleDTO> content, int totalPages, long totalElements, int size, int number) {
+    public record RolePage(
+            List<RoleDTO> content,
+            int totalPages,
+            long totalElements,
+            int size,
+            int number,
+            boolean hasNext,
+            boolean hasPrevious) {
         public static RolePage from(PageDTO<RoleDTO> dto) {
-            return new RolePage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+            return new RolePage(
+                    dto.content(),
+                    dto.totalPages(),
+                    dto.totalElements(),
+                    dto.size(),
+                    dto.number(),
+                    dto.hasNext(),
+                    dto.hasPrevious());
         }
     }
- }
+}

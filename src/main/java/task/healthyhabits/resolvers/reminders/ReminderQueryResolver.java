@@ -50,9 +50,23 @@ public class ReminderQueryResolver {
         return reminderService.findByIdOrNull(id);
     }
 
-    public record ReminderPage(List<ReminderDTO> content, int totalPages, long totalElements, int size, int number) {
+    public record ReminderPage(
+            List<ReminderDTO> content,
+            int totalPages,
+            long totalElements,
+            int size,
+            int number,
+            boolean hasNext,
+            boolean hasPrevious) {
         public static ReminderPage from(PageDTO<ReminderDTO> dto) {
-            return new ReminderPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+            return new ReminderPage(
+                    dto.content(),
+                    dto.totalPages(),
+                    dto.totalElements(),
+                    dto.size(),
+                    dto.number(),
+                    dto.hasNext(),
+                    dto.hasPrevious());
         }
     }
 }

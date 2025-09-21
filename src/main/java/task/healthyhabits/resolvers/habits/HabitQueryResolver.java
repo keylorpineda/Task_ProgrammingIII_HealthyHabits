@@ -44,9 +44,23 @@ public class HabitQueryResolver {
         return habitService.findByIdOrNull(id);
     }
 
-    public record HabitPage(List<HabitDTO> content, int totalPages, int totalElements, int size, int number) {
+    public record HabitPage(
+            List<HabitDTO> content,
+            int totalPages,
+            long totalElements,
+            int size,
+            int number,
+            boolean hasNext,
+            boolean hasPrevious) {
         public static HabitPage from(PageDTO<HabitDTO> dto) {
-            return new HabitPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+            return new HabitPage(
+                    dto.content(),
+                    dto.totalPages(),
+                    dto.totalElements(),
+                    dto.size(),
+                    dto.number(),
+                    dto.hasNext(),
+                    dto.hasPrevious());
         }
     }
 }

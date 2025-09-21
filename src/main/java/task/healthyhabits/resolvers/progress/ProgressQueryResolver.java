@@ -98,18 +98,43 @@ public class ProgressQueryResolver {
         return List.of(new MonthlyStat(month, year, list));
     }
 
-    public record ProgressLogPage(List<ProgressLogDTO> content, int totalPages, long totalElements, int size,
-            int number) {
+    public record ProgressLogPage(
+            List<ProgressLogDTO> content,
+            int totalPages,
+            long totalElements,
+            int size,
+            int number,
+            boolean hasNext,
+            boolean hasPrevious) {
         public static ProgressLogPage from(PageDTO<ProgressLogDTO> dto) {
-            return new ProgressLogPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+            return new ProgressLogPage(
+                    dto.content(),
+                    dto.totalPages(),
+                    dto.totalElements(),
+                    dto.size(),
+                    dto.number(),
+                    dto.hasNext(),
+                    dto.hasPrevious());
         }
     }
 
-    public record CompletedActivityPage(List<CompletedActivityDTO> content, int totalPages, long totalElements,
-            int size, int number) {
+    public record CompletedActivityPage(
+            List<CompletedActivityDTO> content,
+            int totalPages,
+            long totalElements,
+            int size,
+            int number,
+            boolean hasNext,
+            boolean hasPrevious) {
         public static CompletedActivityPage from(PageDTO<CompletedActivityDTO> dto) {
-            return new CompletedActivityPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(),
-                    dto.number());
+            return new CompletedActivityPage(
+                    dto.content(),
+                    dto.totalPages(),
+                    dto.totalElements(),
+                    dto.size(),
+                    dto.number(),
+                    dto.hasNext(),
+                    dto.hasPrevious());
         }
     }
 
