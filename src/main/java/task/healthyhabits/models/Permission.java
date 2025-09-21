@@ -1,0 +1,18 @@
+package task.healthyhabits.models;
+
+public enum Permission {
+    HABIT_READ,
+    HABIT_EDITOR,
+    ROUTINE_READ,
+    ROUTINE_EDITOR,
+    REMINDER_READ,
+    REMINDER_EDITOR,
+    PROGRESS_READ,
+    PROGRESS_EDITOR,
+    GUIDE_READ,
+    GUIDE_EDITOR,
+    USER_READ,
+    USER_EDITOR,
+    AUDITOR,
+    USER_WRITE
+}
