@@ -1,7 +1,7 @@
 package task.healthyhabits.resolvers.routines;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import task.healthyhabits.dtos.pages.PageDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -27,8 +27,8 @@ public class RoutineQueryResolver {
     public RoutinePage listRoutines(@Argument int page, @Argument int size) {
         requireAny(Permission.ROUTINE_READ, Permission.ROUTINE_EDITOR);
         Pageable pageable = PageRequest.of(page, size);
-        Page<RoutineDTO> p = routineService.list(pageable);
-        return new RoutinePage(p.getContent(), p.getTotalPages(), (int) p.getTotalElements(), p.getSize(), p.getNumber());
+        PageDTO<RoutineDTO> routinePage = PageDTO.from(routineService.list(pageable));
+        return RoutinePage.from(routinePage); 
     }
 
     @QueryMapping
@@ -40,16 +40,16 @@ public class RoutineQueryResolver {
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found"))
                 .getId();
         Pageable pageable = PageRequest.of(page, size);
-        Page<RoutineDTO> p = routineService.myRoutines(userId, pageable);
-        return new RoutinePage(p.getContent(), p.getTotalPages(), (int) p.getTotalElements(), p.getSize(), p.getNumber());
+        PageDTO<RoutineDTO> routinePage = PageDTO.from(routineService.myRoutines(userId, pageable));
+        return RoutinePage.from(routinePage);
     }
 
     @QueryMapping
     public RoutinePage listRoutinesByUser(@Argument Long userId, @Argument int page, @Argument int size) {
         requireAny(Permission.ROUTINE_READ, Permission.ROUTINE_EDITOR);
         Pageable pageable = PageRequest.of(page, size);
-        Page<RoutineDTO> p = routineService.byUser(userId, pageable);
-        return new RoutinePage(p.getContent(), p.getTotalPages(), (int) p.getTotalElements(), p.getSize(), p.getNumber());
+        PageDTO<RoutineDTO> routinePage = PageDTO.from(routineService.byUser(userId, pageable));
+        return RoutinePage.from(routinePage);
     }
 
     @QueryMapping
@@ -58,6 +58,9 @@ public class RoutineQueryResolver {
         return routineService.findByIdOrNull(id);
     }
 
-    public record RoutinePage(List<RoutineDTO> content, int totalPages, int totalElements, int size, int number) {
+    public record RoutinePage(List<RoutineDTO> content, int totalPages, long totalElements, int size, int number) {
+        public static RoutinePage from(PageDTO<RoutineDTO> dto) {
+            return new RoutinePage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+        }
     }
 }

@@ -28,6 +28,7 @@ class GraphQlConfigTest {
         assertThat(wiring.getScalars())
                 .containsEntry(ExtendedScalars.DateTime.getName(), ExtendedScalars.DateTime)
                 .containsEntry(ExtendedScalars.Date.getName(), ExtendedScalars.Date)
-                .containsEntry(ExtendedScalars.LocalTime.getName(), ExtendedScalars.LocalTime);
+                .containsEntry(ExtendedScalars.LocalTime.getName(), ExtendedScalars.LocalTime)
+                .containsEntry(ExtendedScalars.GraphQLLong.getName(), ExtendedScalars.GraphQLLong);
     }
 }

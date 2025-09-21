@@ -1,7 +1,7 @@
 package task.healthyhabits.resolvers.routineActivities;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import task.healthyhabits.dtos.pages.PageDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -25,8 +25,8 @@ public class RoutineActivityQueryResolver {
     public RoutineActivityPage listRoutineActivities(@Argument int page, @Argument int size) {
         requireAny(Permission.ROUTINE_READ, Permission.ROUTINE_EDITOR);
         Pageable pageable = PageRequest.of(page, size);
-        Page<RoutineActivityDTO> p = routineActivityService.list(pageable);
-        return new RoutineActivityPage(p.getContent(), p.getTotalPages(), (int) p.getTotalElements(), p.getSize(), p.getNumber());
+        PageDTO<RoutineActivityDTO> routineActivityPage = PageDTO.from(routineActivityService.list(pageable));
+        return RoutineActivityPage.from(routineActivityPage);
     }
 
     @QueryMapping
@@ -35,7 +35,11 @@ public class RoutineActivityQueryResolver {
         return routineActivityService.findByIdOrNull(id);
     }
 
-    public record RoutineActivityPage(List<RoutineActivityDTO> content, int totalPages, int totalElements, int size,
-                                      int number) {
+    public record RoutineActivityPage(List<RoutineActivityDTO> content, int totalPages, long totalElements, int size,
+            int number) {
+        public static RoutineActivityPage from(PageDTO<RoutineActivityDTO> dto) {
+            return new RoutineActivityPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(),
+                    dto.number());
+        }
     }
 }

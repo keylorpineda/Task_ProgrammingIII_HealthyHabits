@@ -44,6 +44,7 @@ enum Permission {
 scalar DateTime
 scalar Date
 scalar LocalTime
+scalar Long
 
 type Role {
   id: ID!
@@ -122,7 +123,7 @@ type User {
 type RolePage {
   content: [Role!]!
   totalPages: Int!
-  totalElements: Int!
+ totalElements: Long!
   size: Int!
   number: Int!
 }
@@ -130,7 +131,7 @@ type RolePage {
 type HabitPage {
   content: [Habit!]!
   totalPages: Int!
-  totalElements: Int!
+  totalElements: Long!
   size: Int!
   number: Int!
 }
@@ -138,7 +139,7 @@ type HabitPage {
 type GuidePage {
   content: [Guide!]!
   totalPages: Int!
-  totalElements: Int!
+  totalElements: Long!
   size: Int!
   number: Int!
 }
@@ -146,7 +147,7 @@ type GuidePage {
 type RoutineActivityPage {
   content: [RoutineActivity!]!
   totalPages: Int!
-  totalElements: Int!
+  totalElements: Long!
   size: Int!
   number: Int!
 }
@@ -154,7 +155,7 @@ type RoutineActivityPage {
 type RoutinePage {
   content: [Routine!]!
   totalPages: Int!
-  totalElements: Int!
+  totalElements: Long!
   size: Int!
   number: Int!
 }
@@ -162,7 +163,7 @@ type RoutinePage {
 type ProgressLogPage {
   content: [ProgressLog!]!
   totalPages: Int!
-  totalElements: Int!
+  totalElements: Long!
   size: Int!
   number: Int!
 }
@@ -170,7 +171,7 @@ type ProgressLogPage {
 type CompletedActivityPage {
   content: [CompletedActivity!]!
   totalPages: Int!
-  totalElements: Int!
+  totalElements: Long!
   size: Int!
   number: Int!
 }
@@ -178,7 +179,7 @@ type CompletedActivityPage {
 type ReminderPage {
   content: [Reminder!]!
   totalPages: Int!
-  totalElements: Int!
+  totalElements: Long!
   size: Int!
   number: Int!
 }
@@ -186,7 +187,7 @@ type ReminderPage {
 type UserPage {
   content: [User!]!
   totalPages: Int!
-  totalElements: Int!
+  totalElements: Long!
   size: Int!
   number: Int!
 }

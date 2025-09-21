@@ -13,6 +13,7 @@ public class GraphQlConfig {
         return builder -> builder
                 .scalar(ExtendedScalars.DateTime)
                 .scalar(ExtendedScalars.Date)
-                .scalar(ExtendedScalars.LocalTime);
+                .scalar(ExtendedScalars.LocalTime)
+                .scalar(ExtendedScalars.GraphQLLong);
     }
 }

@@ -1,7 +1,7 @@
 package task.healthyhabits.resolvers.progress;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import task.healthyhabits.dtos.pages.PageDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -34,8 +34,8 @@ public class ProgressQueryResolver {
     public ProgressLogPage listProgressLogs(@Argument int page, @Argument int size) {
         requireAny(Permission.PROGRESS_READ, Permission.PROGRESS_EDITOR);
         Pageable pageable = PageRequest.of(page, size);
-        Page<ProgressLogDTO> p = progressLogService.list(pageable);
-        return new ProgressLogPage(p.getContent(), p.getTotalPages(), (int) p.getTotalElements(), p.getSize(), p.getNumber());
+        PageDTO<ProgressLogDTO> pageDto = PageDTO.from(progressLogService.list(pageable));
+        return ProgressLogPage.from(pageDto);
     }
 
     @QueryMapping
@@ -46,14 +46,14 @@ public class ProgressQueryResolver {
 
     @QueryMapping
     public ProgressLogPage listProgressLogsByDateRange(@Argument Long userId,
-                                                       @Argument LocalDate from,
-                                                       @Argument LocalDate to,
-                                                       @Argument int page,
-                                                       @Argument int size) {
+            @Argument LocalDate from,
+            @Argument LocalDate to,
+            @Argument int page,
+            @Argument int size) {
         requireAny(Permission.PROGRESS_READ, Permission.PROGRESS_EDITOR);
         Pageable pageable = PageRequest.of(page, size);
-        Page<ProgressLogDTO> p = progressLogService.byRange(userId, from, to, pageable);
-        return new ProgressLogPage(p.getContent(), p.getTotalPages(), (int) p.getTotalElements(), p.getSize(), p.getNumber());
+        PageDTO<ProgressLogDTO> pageDto = PageDTO.from(progressLogService.byRange(userId, from, to, pageable));
+        return ProgressLogPage.from(pageDto);
     }
 
     @QueryMapping
@@ -66,8 +66,8 @@ public class ProgressQueryResolver {
     public CompletedActivityPage listCompletedActivities(@Argument int page, @Argument int size) {
         requireAny(Permission.PROGRESS_READ, Permission.PROGRESS_EDITOR);
         Pageable pageable = PageRequest.of(page, size);
-        Page<CompletedActivityDTO> p = completedActivityService.list(pageable);
-        return new CompletedActivityPage(p.getContent(), p.getTotalPages(), (int) p.getTotalElements(), p.getSize(), p.getNumber());
+        PageDTO<CompletedActivityDTO> pageDto = PageDTO.from(completedActivityService.list(pageable));
+        return CompletedActivityPage.from(pageDto);
     }
 
     @QueryMapping
@@ -98,10 +98,30 @@ public class ProgressQueryResolver {
         return List.of(new MonthlyStat(month, year, list));
     }
 
-    public record ProgressLogPage(List<ProgressLogDTO> content, int totalPages, int totalElements, int size, int number) { }
-    public record CompletedActivityPage(List<CompletedActivityDTO> content, int totalPages, int totalElements, int size, int number) { }
-    public record CategoryCount(Category category, int count) { }
-    public record MonthlyStat(int month, int year, List<CategoryCount> byCategory) { }
-    public record DailyProgress(LocalDate date, int completedCount) { }
-    public record WeeklyProgress(LocalDate weekStart, List<DailyProgress> daily) { }
+    public record ProgressLogPage(List<ProgressLogDTO> content, int totalPages, long totalElements, int size,
+            int number) {
+        public static ProgressLogPage from(PageDTO<ProgressLogDTO> dto) {
+            return new ProgressLogPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+        }
+    }
+
+    public record CompletedActivityPage(List<CompletedActivityDTO> content, int totalPages, long totalElements,
+            int size, int number) {
+        public static CompletedActivityPage from(PageDTO<CompletedActivityDTO> dto) {
+            return new CompletedActivityPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(),
+                    dto.number());
+        }
+    }
+
+    public record CategoryCount(Category category, int count) {
+    }
+
+    public record MonthlyStat(int month, int year, List<CategoryCount> byCategory) {
+    }
+
+    public record DailyProgress(LocalDate date, int completedCount) {
+    }
+
+    public record WeeklyProgress(LocalDate weekStart, List<DailyProgress> daily) {
+    }
 }

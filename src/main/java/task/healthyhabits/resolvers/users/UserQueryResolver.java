@@ -1,7 +1,7 @@
 package task.healthyhabits.resolvers.users;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import task.healthyhabits.dtos.pages.PageDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -33,8 +33,8 @@ public class UserQueryResolver {
     public UserPage listUsers(@Argument int page, @Argument int size) {
         requireAny(Permission.USER_READ, Permission.USER_EDITOR);
         Pageable pageable = PageRequest.of(page, size);
-        Page<UserDTO> p = userService.list(pageable);
-        return new UserPage(p.getContent(), p.getTotalPages(), (int) p.getTotalElements(), p.getSize(), p.getNumber());
+        PageDTO<UserDTO> userPageDTO = PageDTO.from(userService.list(pageable));
+        return UserPage.from(userPageDTO);
     }
 
     @QueryMapping
@@ -46,8 +46,8 @@ public class UserQueryResolver {
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found"))
                 .getId();
         Pageable pageable = PageRequest.of(page, size);
-        Page<HabitDTO> p = userService.listMyFavoriteHabits(userId, pageable);
-        return new HabitPage(p.getContent(), p.getTotalPages(), (int) p.getTotalElements(), p.getSize(), p.getNumber());
+        PageDTO<HabitDTO> habitPageDTO = PageDTO.from(userService.listMyFavoriteHabits(userId, pageable));
+        return HabitPage.from(habitPageDTO);
     }
 
     @QueryMapping
@@ -59,13 +59,19 @@ public class UserQueryResolver {
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found"))
                 .getId();
         Pageable pageable = PageRequest.of(page, size);
-        Page<UserDTO> p = userService.listStudentsOfCoach(coachId, pageable);
-        return new UserPage(p.getContent(), p.getTotalPages(), (int) p.getTotalElements(), p.getSize(), p.getNumber());
+        PageDTO<UserDTO> userPageDTO = PageDTO.from(userService.listStudentsOfCoach(coachId, pageable));
+        return UserPage.from(userPageDTO);
     }
 
-    public record UserPage(List<UserDTO> content, int totalPages, int totalElements, int size, int number) {
+   public record UserPage(List<UserDTO> content, int totalPages, long totalElements, int size, int number) {
+        public static UserPage from(PageDTO<UserDTO> dto) {
+            return new UserPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+        }
     }
 
-    public record HabitPage(List<HabitDTO> content, int totalPages, int totalElements, int size, int number) {
+    public record HabitPage(List<HabitDTO> content, int totalPages, long totalElements, int size, int number) {
+        public static HabitPage from(PageDTO<HabitDTO> dto) {
+            return new HabitPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+        }
     }
 }
