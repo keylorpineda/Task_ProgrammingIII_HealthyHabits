@@ -9,10 +9,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +16,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import task.healthyhabits.config.AdminInitializer;
@@ -27,11 +25,10 @@ import task.healthyhabits.models.Role;
 import task.healthyhabits.models.User;
 import task.healthyhabits.repositories.RoleRepository;
 import task.healthyhabits.repositories.UserRepository;
-import org.springframework.core.env.Environment;
 import task.healthyhabits.security.hash.PasswordHashService;
-import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({ MockitoExtension.class, OutputCaptureExtension.class })
 class AdminInitializerTest {
 
     @Mock
@@ -103,29 +100,16 @@ class AdminInitializerTest {
     }
 
     @Test
-    void runLogsWarningAndSkipsWhenPasswordMissing() {
+    void runLogsWarningAndSkipsWhenPasswordMissing(CapturedOutput output) {
         when(environment.getProperty("app.admin.password")).thenReturn("");
         when(environment.getProperty("APP_ADMIN_PASSWORD")).thenReturn(null);
 
-        Logger logger = (Logger) LoggerFactory.getLogger(AdminInitializer.class);
-        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-        listAppender.start();
-        logger.addAppender(listAppender);
-
-        try {
-            initializer.run();
-        } finally {
-            logger.detachAppender(listAppender);
-        }
+        initializer.run();
 
         verifyNoInteractions(userRepository, roleRepository, passwordHashService);
 
-        assertThat(listAppender.list)
-                .anySatisfy(event -> {
-                    assertThat(event.getLevel()).isEqualTo(Level.WARN);
-                    assertThat(event.getFormattedMessage())
-                            .contains("Administrator account seeding skipped")
-                            .contains("APP_ADMIN_PASSWORD");
-                });
+        assertThat(output.getOut())
+                .contains("Administrator account seeding skipped")
+                .contains("APP_ADMIN_PASSWORD");
     }
 }
