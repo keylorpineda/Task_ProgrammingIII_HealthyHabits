@@ -40,22 +40,30 @@ public class AdminInitializer implements CommandLineRunner {
         String envPassword = environment.getProperty(ADMIN_PASSWORD_ENV);
 
         if (!StringUtils.hasText(envPassword)) {
-            LOGGER.error("Environment variable {} must be provided with a secure administrator password.",
-                    ADMIN_PASSWORD_ENV);
-            throw new IllegalStateException("Environment variable APP_ADMIN_PASSWORD is required.");
+            LOGGER.warn(
+                    "Administrator account seeding skipped: environment variable {} is not defined or blank. "
+                            + "Provide matching values for property 'app.admin.password' and environment variable {} "
+                            + "to seed the administrator account.",
+                    ADMIN_PASSWORD_ENV, ADMIN_PASSWORD_ENV);
+            return;
         }
 
         if (!StringUtils.hasText(adminPassword)) {
-            LOGGER.error("Property 'app.admin.password' is empty. Ensure environment variable {} is defined.",
+            LOGGER.warn(
+                    "Administrator account seeding skipped: property 'app.admin.password' is not defined or blank. "
+                            + "Provide matching values for property 'app.admin.password' and environment variable {} "
+                            + "to seed the administrator account.",
                     ADMIN_PASSWORD_ENV);
-            throw new IllegalStateException("Property 'app.admin.password' must not be empty.");
+            return;
         }
 
         if (!envPassword.equals(adminPassword)) {
-            LOGGER.error("The configured administrator password does not originate from environment variable {}.",
+            LOGGER.warn(
+                    "Administrator account seeding skipped: property 'app.admin.password' does not match environment "
+                            + "variable {}. Ensure both are configured with the same secure password to seed the "
+                            + "administrator account.",
                     ADMIN_PASSWORD_ENV);
-            throw new IllegalStateException(
-                    "Administrator password must be provided via environment variable APP_ADMIN_PASSWORD.");
+            return;
         }
 
         String encodedPassword = passwordHashService.encode(adminPassword);

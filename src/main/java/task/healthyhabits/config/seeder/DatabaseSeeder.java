@@ -140,7 +140,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             List<Habit> habitBatch = new ArrayList<>(currentBatch);
             for (int i = 0; i < currentBatch; i++) {
                 Habit habit = new Habit();
-                habit.setName(truncate(faker.wellness().treatment() + " " + faker.number().digits(4), 100));
+                habit.setName(truncate(faker.commerce().productName() + " " + faker.number().digits(4), 100));
                 habit.setDescription(truncate(faker.lorem().sentence(12), 200));
                 habit.setCategory(categories[faker.number().numberBetween(0, categories.length)]);
                 habitBatch.add(habit);
