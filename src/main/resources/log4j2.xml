@@ -2,7 +2,7 @@
 <Configuration status="WARN">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
-      <JsonLayout compact="true" eventEol="true" locationInfo="true" properties="true" stacktraceEnabled="true" />
+      <JsonLayout compact="true" eventEol="true" locationInfo="true" properties="true" includeStacktrace="true" stacktraceAsString="true" />
     </Console>
   </Appenders>
   <Loggers>
