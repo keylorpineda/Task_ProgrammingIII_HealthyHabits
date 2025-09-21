@@ -1,5 +1,4 @@
-package task.healthyhabits.services.auth;
-
+package task.healthyhabits.servicesTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,6 +32,7 @@ import task.healthyhabits.repositories.RoleRepository;
 import task.healthyhabits.repositories.UserRepository;
 import task.healthyhabits.security.JWT.JwtService;
 import task.healthyhabits.security.hash.PasswordHashService;
+import task.healthyhabits.services.auth.AuthServiceImplementation;
 import task.healthyhabits.transformers.GenericMapper;
 import task.healthyhabits.transformers.GenericMapperFactory;
 import task.healthyhabits.transformers.InputOutputMapper;
