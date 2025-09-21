@@ -63,6 +63,9 @@ public class DatabaseSeeder implements CommandLineRunner {
     private static final int DEFAULT_HABIT_MINIMUM = 200;
     private static final String DEFAULT_PASSWORD = "SeederP4ss";
     private static final int MAX_HABIT_GENERATION_ATTEMPTS = 100;
+    private static final int MIN_BATCH_SIZE = 100;
+    private static final int MAX_BATCH_SIZE = 5000;
+    private static final int MAX_TARGET_USERS = 10_000;
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
