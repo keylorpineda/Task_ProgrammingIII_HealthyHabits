@@ -4,5 +4,7 @@ public enum Category {
     PHYSICAL,
     MENTAL,
     SLEEP,
-    DIET, NUTRITION, FITNESS, MINDFULNESS,
+    DIET,
+    FITNESS,
+    MINDFULNESS
 }

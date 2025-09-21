@@ -8,6 +8,8 @@ enum Category {
   MENTAL
   SLEEP
   DIET
+  FITNESS
+  MINDFULNESS
 }
 
 enum Frequency {
@@ -39,6 +41,7 @@ enum Permission {
   USER_READ
   USER_EDITOR
   AUDITOR
+  USER_WRITE
 }
 
 scalar DateTime
