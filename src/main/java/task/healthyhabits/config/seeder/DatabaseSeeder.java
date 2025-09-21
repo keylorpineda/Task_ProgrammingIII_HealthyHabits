@@ -8,6 +8,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -61,6 +62,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private static final int DEFAULT_USER_MINIMUM = 500;
     private static final int DEFAULT_HABIT_MINIMUM = 200;
     private static final String DEFAULT_PASSWORD = "SeederP4ss";
+    private static final int MAX_HABIT_GENERATION_ATTEMPTS = 100;
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -128,31 +130,82 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     private List<Habit> prepareHabits(Faker faker, int targetHabits, int batchSize) {
-        long existingHabits = habitRepository.count();
-        int toCreate = Math.max(0, targetHabits - (int) Math.min(existingHabits, (long) Integer.MAX_VALUE));
-        if (toCreate > 0) {
-            log.info("Generating {} new habits", toCreate);
+        List<Habit> existingHabits = habitRepository.findAll();
+        int currentHabitCount = existingHabits.size();
+        int toCreate = Math.max(0, targetHabits - currentHabitCount);
+        if (toCreate <= 0) {
+            if (currentHabitCount > 0) {
+                log.info("Target habits already satisfied ({}). Skipping habit generation.", currentHabitCount);
+            }
+            return existingHabits;
         }
+
+        log.info("Generating {} new habits", toCreate);
+
+        Set<String> usedHabitIdentifiers = new HashSet<>(Math.max(currentHabitCount, 16));
+        for (Habit habit : existingHabits) {
+            if (habit.getName() != null && habit.getCategory() != null) {
+                usedHabitIdentifiers.add(buildHabitIdentifier(habit.getName(), habit.getCategory()));
+            }
+        }
+
+        List<Habit> allHabits = new ArrayList<>(existingHabits);
         Category[] categories = Category.values();
         int created = 0;
         while (toCreate > 0) {
             int currentBatch = Math.min(batchSize, toCreate);
             List<Habit> habitBatch = new ArrayList<>(currentBatch);
             for (int i = 0; i < currentBatch; i++) {
-                Habit habit = new Habit();
-                habit.setName(truncate(faker.commerce().productName() + " " + faker.number().digits(4), 100));
-                habit.setDescription(truncate(faker.lorem().sentence(12), 200));
-                habit.setCategory(categories[faker.number().numberBetween(0, categories.length)]);
+                Habit habit = generateUniqueHabit(faker, categories, usedHabitIdentifiers);
+                if (habit == null) {
+                    log.warn(
+                            "Unable to generate additional unique habits for this batch after {} attempts. Created {} habits instead of {}.",
+                            MAX_HABIT_GENERATION_ATTEMPTS,
+                            habitBatch.size(),
+                            currentBatch
+                    );
+                    break;
+                }
                 habitBatch.add(habit);
             }
-            habitRepository.saveAll(habitBatch);
-            created += currentBatch;
-            toCreate -= currentBatch;
+             if (habitBatch.isEmpty()) {
+                log.warn("Stopping habit generation early because no unique habits could be created.");
+                break;
+            }
+            List<Habit> savedHabits = habitRepository.saveAll(habitBatch);
+            allHabits.addAll(savedHabits);
+            created += savedHabits.size();
+            toCreate -= savedHabits.size();
         }
         if (created > 0) {
             log.info("{} habits created", created);
         }
-        return habitRepository.findAll();
+        return allHabits;
+    }
+
+    private Habit generateUniqueHabit(Faker faker, Category[] categories, Set<String> usedHabitIdentifiers) {
+        for (int attempt = 0; attempt < MAX_HABIT_GENERATION_ATTEMPTS; attempt++) {
+            Habit habit = new Habit();
+            habit.setName(truncate(faker.commerce().productName() + " " + faker.number().digits(4), 100));
+            habit.setDescription(truncate(faker.lorem().sentence(12), 200));
+            habit.setCategory(categories[faker.number().numberBetween(0, categories.length)]);
+
+            String identifier = buildHabitIdentifier(habit.getName(), habit.getCategory());
+            if (identifier == null) {
+                continue;
+            }
+            if (usedHabitIdentifiers.add(identifier)) {
+                return habit;
+            }
+        }
+        return null;
+    }
+
+    private String buildHabitIdentifier(String name, Category category) {
+        if (name == null || category == null) {
+            return null;
+        }
+        return name + ":" + category.name();
     }
 
     private void seedUsersWithRelatedData(
