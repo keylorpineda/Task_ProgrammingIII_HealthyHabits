@@ -90,9 +90,39 @@ public class DatabaseSeeder implements CommandLineRunner {
             return;
         }
 
-        int batchSize = Math.max(50, configuredBatchSize);
-        int targetUsers = Math.max(DEFAULT_USER_MINIMUM, targetTotalRecords / 60);
-        int targetHabits = Math.max(DEFAULT_HABIT_MINIMUM, targetUsers / 5);
+        int batchSize = Math.max(MIN_BATCH_SIZE, configuredBatchSize);
+        if (batchSize > MAX_BATCH_SIZE) {
+            log.warn(
+                    "Configured batch size {} exceeds safe maximum {}. Using {} instead.",
+                    batchSize,
+                    MAX_BATCH_SIZE,
+                    MAX_BATCH_SIZE
+            );
+            batchSize = MAX_BATCH_SIZE;
+        }
+        configuredBatchSize = batchSize;
+
+        int requestedUsers = Math.max(DEFAULT_USER_MINIMUM, targetTotalRecords / 60);
+        int targetUsers = Math.min(MAX_TARGET_USERS, requestedUsers);
+        if (targetUsers < requestedUsers) {
+            log.warn(
+                    "Configured target users {} exceeds safe maximum {}. Using {} instead.",
+                    requestedUsers,
+                    MAX_TARGET_USERS,
+                    MAX_TARGET_USERS
+            );
+        }
+
+        int requestedHabits = Math.max(DEFAULT_HABIT_MINIMUM, requestedUsers / 5);
+        int targetHabits = Math.min(MAX_TARGET_USERS, Math.max(DEFAULT_HABIT_MINIMUM, targetUsers / 5));
+        if (targetHabits < requestedHabits) {
+            log.warn(
+                    "Configured target habits {} exceeds safe maximum {}. Using {} instead.",
+                    requestedHabits,
+                    MAX_TARGET_USERS,
+                    targetHabits
+            );
+        }
 
         Locale locale = resolveLocale(localeTag);
         Faker faker = new Faker(locale);
@@ -276,7 +306,10 @@ public class DatabaseSeeder implements CommandLineRunner {
             }
         }
         if (!reminders.isEmpty()) {
-            List<List<Reminder>> partitions = partition(reminders, Math.max(1, batchSize * REMINDERS_PER_USER));
+            List<List<Reminder>> partitions = partition(
+                    reminders,
+                    Math.max(1, Math.min(batchSize, batchSize * REMINDERS_PER_USER))
+            );
             for (List<Reminder> partition : partitions) {
                 reminderRepository.saveAll(partition);
             }
@@ -297,7 +330,10 @@ public class DatabaseSeeder implements CommandLineRunner {
             }
         }
         if (!routines.isEmpty()) {
-            List<List<Routine>> partitions = partition(routines, Math.max(1, batchSize * ROUTINES_PER_USER));
+            List<List<Routine>> partitions = partition(
+                    routines,
+                    Math.max(1, Math.min(batchSize, batchSize * ROUTINES_PER_USER))
+            );
             List<Routine> persisted = new ArrayList<>(routines.size());
             for (List<Routine> partition : partitions) {
                 persisted.addAll(routineRepository.saveAll(partition));
@@ -330,7 +366,10 @@ public class DatabaseSeeder implements CommandLineRunner {
             activitiesByRoutine.put(routine.getId(), activities);
         }
         if (!activitiesToPersist.isEmpty()) {
-            List<List<RoutineActivity>> partitions = partition(activitiesToPersist, Math.max(1, batchSize * ACTIVITIES_PER_ROUTINE));
+            List<List<RoutineActivity>> partitions = partition(
+                    activitiesToPersist,
+                    Math.max(1, Math.min(batchSize, batchSize * ACTIVITIES_PER_ROUTINE))
+            );
             for (List<RoutineActivity> partition : partitions) {
                 routineActivityRepository.saveAll(partition);
             }
@@ -346,7 +385,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     ) {
         List<ProgressLog> logBatch = new ArrayList<>();
         List<ProgressLogContext> contexts = new ArrayList<>();
-        int logBatchSize = Math.max(1, batchSize * PROGRESS_LOGS_PER_ROUTINE);
+       int logBatchSize = Math.max(1, Math.min(batchSize, batchSize * PROGRESS_LOGS_PER_ROUTINE));
         for (Routine routine : routines) {
             List<RoutineActivity> activities = activitiesByRoutine.getOrDefault(routine.getId(), List.of());
             for (int i = 0; i < PROGRESS_LOGS_PER_ROUTINE; i++) {
@@ -357,16 +396,21 @@ public class DatabaseSeeder implements CommandLineRunner {
                 logBatch.add(log);
                 contexts.add(new ProgressLogContext(log, activities));
                 if (logBatch.size() >= logBatchSize) {
-                    persistProgressLogs(faker, logBatch, contexts);
+                    persistProgressLogs(faker, logBatch, contexts, batchSize);
                 }
             }
         }
         if (!logBatch.isEmpty()) {
-            persistProgressLogs(faker, logBatch, contexts);
+            persistProgressLogs(faker, logBatch, contexts, batchSize);
         }
     }
 
-    private void persistProgressLogs(Faker faker, List<ProgressLog> logBatch, List<ProgressLogContext> contexts) {
+    private void persistProgressLogs(
+            Faker faker,
+            List<ProgressLog> logBatch,
+            List<ProgressLogContext> contexts,
+            int batchSize
+    ) {
         progressLogRepository.saveAll(logBatch);
         List<CompletedActivity> completedActivities = new ArrayList<>(logBatch.size() * COMPLETED_PER_LOG);
         for (ProgressLogContext context : contexts) {
@@ -384,7 +428,13 @@ public class DatabaseSeeder implements CommandLineRunner {
             }
         }
         if (!completedActivities.isEmpty()) {
-            completedActivityRepository.saveAll(completedActivities);
+            List<List<CompletedActivity>> partitions = partition(
+                    completedActivities,
+                    Math.max(1, Math.min(batchSize, completedActivities.size()))
+            );
+            for (List<CompletedActivity> partition : partitions) {
+                completedActivityRepository.saveAll(partition);
+            }
         }
         logBatch.clear();
         contexts.clear();
