@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import java.util.Set;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -84,19 +85,18 @@ class GuideServiceImplementationTest {
 
     @Test
     void recommended_filtersByCategoryAndPaginates() {
-        Guide other = new Guide();
-        other.setId(2L);
-        other.setCategory(Category.MINDFULNESS);
-        when(guideRepository.findAll()).thenReturn(List.of(guide, other));
+        Pageable pageable = PageRequest.of(0, 1);
+        when(guideRepository.findAllByCategory(Category.FITNESS, pageable))
+                .thenReturn(new PageImpl<>(List.of(guide), pageable, 1));
         when(guideMapper.convertToDTO(guide)).thenReturn(guideDTO);
 
-        Page<GuideDTO> page = service.recommended(Category.FITNESS, null, PageRequest.of(0, 1));
+        Page<GuideDTO> page = service.recommended(Category.FITNESS, null, pageable);
 
         assertEquals(1, page.getTotalElements());
         assertEquals(1, page.getContent().size());
         assertSame(guideDTO, page.getContent().getFirst());
         verify(guideMapper).convertToDTO(guide);
-        verify(guideMapper, never()).convertToDTO(other);
+        verify(guideRepository).findAllByCategory(Category.FITNESS, pageable);
     }
 
     @Test
@@ -107,22 +107,22 @@ class GuideServiceImplementationTest {
         user.setId(20L);
         user.setFavoriteHabits(List.of(favorite));
         guide.setRecommendedFor(List.of(favorite));
-        Guide second = new Guide();
-        second.setId(7L);
-        second.setRecommendedFor(new ArrayList<>());
         when(userRepository.findById(20L)).thenReturn(Optional.of(user));
-        when(guideRepository.findAll()).thenReturn(List.of(guide, second));
+        Pageable pageable = PageRequest.of(0, 1);
+        when(guideRepository.findAllRecommendedForHabits(Set.of(5L), pageable))
+                .thenReturn(new PageImpl<>(List.of(guide), pageable, 1));
         GuideDTO mapped = new GuideDTO();
         mapped.setId(guide.getId());
         when(guideMapper.convertToDTO(guide)).thenReturn(mapped);
 
-        Page<GuideDTO> page = service.recommended(null, 20L, PageRequest.of(0, 1));
+        Page<GuideDTO> page = service.recommended(null, 20L, pageable);
 
         assertEquals(1, page.getTotalElements());
         assertEquals(1, page.getContent().size());
         assertEquals(guide.getId(), page.getContent().getFirst().getId());
         verify(userRepository).findById(20L);
         verify(guideMapper).convertToDTO(guide);
+        verify(guideRepository).findAllRecommendedForHabits(Set.of(5L), pageable);
     }
 
     @Test
@@ -132,10 +132,11 @@ class GuideServiceImplementationTest {
         user.setFavoriteHabits(new ArrayList<>());
         when(userRepository.findById(3L)).thenReturn(Optional.of(user));
 
-        Page<GuideDTO> page = service.recommended(null, 3L, PageRequest.of(0, 1));
+        Pageable pageable = PageRequest.of(0, 1);
+        Page<GuideDTO> page = service.recommended(null, 3L, pageable);
 
         assertTrue(page.isEmpty());
-        verify(guideRepository, never()).findAll();
+        verify(guideRepository, never()).findAllRecommendedForHabits(anySet(), any());
     }
 
     @Test

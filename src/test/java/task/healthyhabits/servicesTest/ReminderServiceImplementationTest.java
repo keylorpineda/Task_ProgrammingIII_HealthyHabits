@@ -81,42 +81,27 @@ class ReminderServiceImplementationTest {
     }
 
     @Test
-    void myReminders_filtersByUserAndPaginates() {
-        Reminder r1 = new Reminder();
-        r1.setId(1L);
-        User user1 = new User();
-        user1.setId(2L);
-        r1.setUser(user1);
-        Reminder r2 = new Reminder();
-        r2.setId(2L);
-        User other = new User();
-        other.setId(3L);
-        r2.setUser(other);
-        Reminder orphan = new Reminder();
-        orphan.setId(3L);
-        when(reminderRepository.findAll()).thenReturn(List.of(r1, r2, orphan));
-        ReminderDTO dto = new ReminderDTO();
-        dto.setId(1L);
-        when(reminderMapper.convertToDTO(r1)).thenReturn(dto);
+    void myReminders_fetchesFromRepositoryAndMaps() {
+        PageRequest pageable = PageRequest.of(0, 1);
+        when(reminderRepository.findAllByUserId(2L, pageable))
+                .thenReturn(new PageImpl<>(List.of(reminder), pageable, 1));
+        when(reminderMapper.convertToDTO(reminder)).thenReturn(reminderDTO);
 
-        Page<ReminderDTO> page = service.myReminders(2L, PageRequest.of(0, 1));
+        Page<ReminderDTO> page = service.myReminders(2L, pageable);
 
         assertEquals(1, page.getTotalElements());
-        assertEquals(1, page.getContent().size());
-        assertEquals(1L, page.getContent().getFirst().getId());
-        verify(reminderMapper).convertToDTO(r1);
+        assertSame(reminderDTO, page.getContent().getFirst());
+        verify(reminderRepository).findAllByUserId(2L, pageable);
+        verify(reminderMapper).convertToDTO(reminder);
     }
 
     @Test
     void myReminders_outOfBoundsPageIsEmpty() {
-        Reminder r1 = new Reminder();
-        User user = new User();
-        user.setId(1L);
-        r1.setUser(user);
-        when(reminderRepository.findAll()).thenReturn(List.of(r1));
-        when(reminderMapper.convertToDTO(r1)).thenReturn(reminderDTO);
+        PageRequest pageable = PageRequest.of(1, 1);
+        when(reminderRepository.findAllByUserId(1L, pageable))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 1));
 
-        Page<ReminderDTO> page = service.myReminders(1L, PageRequest.of(1, 1));
+        Page<ReminderDTO> page = service.myReminders(1L, pageable);
 
         assertTrue(page.isEmpty());
     }

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +17,7 @@ import task.healthyhabits.models.User;
 import task.healthyhabits.repositories.GuideRepository;
 import task.healthyhabits.repositories.HabitRepository;
 import task.healthyhabits.repositories.UserRepository;
+import task.healthyhabits.transformers.GenericMapper;
 import task.healthyhabits.transformers.GenericMapperFactory;
 import task.healthyhabits.transformers.InputOutputMapper;
 
@@ -70,12 +70,10 @@ public class GuideServiceImplementation implements GuideService {
     @Override
     @Transactional(readOnly = true)
     public Page<GuideDTO> recommended(Category category, Long forUserId, Pageable pageable) {
+        GenericMapper<Guide, GuideDTO> mapper = mapperFactory.createMapper(Guide.class, GuideDTO.class);
         if (category != null) {
-            List<GuideDTO> filtered = guideRepository.findAll().stream()
-                    .filter(g -> g.getCategory() == category)
-                    .map(g -> mapperFactory.createMapper(Guide.class, GuideDTO.class).convertToDTO(g))
-                    .toList();
-            return paginate(filtered, pageable);
+            return guideRepository.findAllByCategory(category, pageable)
+                    .map(mapper::convertToDTO);
         }
         User user = userRepository.findById(forUserId)
                 .orElseThrow(() -> {
@@ -88,12 +86,8 @@ public class GuideServiceImplementation implements GuideService {
         if (favIds.isEmpty()) {
             return Page.empty(pageable);
         }
-        List<GuideDTO> filtered = guideRepository.findAll().stream()
-                .filter(g -> g.getRecommendedFor() != null &&
-                        g.getRecommendedFor().stream().anyMatch(h -> favIds.contains(h.getId())))
-                .map(g -> mapperFactory.createMapper(Guide.class, GuideDTO.class).convertToDTO(g))
-                .toList();
-        return paginate(filtered, pageable);
+        return guideRepository.findAllRecommendedForHabits(favIds, pageable)
+                .map(mapper::convertToDTO);
     }
 
     @Override
@@ -153,15 +147,6 @@ public class GuideServiceImplementation implements GuideService {
             logger.error("Unexpected error updating guide {}", id, ex);
             throw ex;
         }
-    }
-
-    private static <T> Page<T> paginate(List<T> all, Pageable pageable) {
-        int offset = (int) pageable.getOffset();
-        int size = pageable.getPageSize();
-        if (offset >= all.size())
-            return new PageImpl<>(new ArrayList<>(), pageable, all.size());
-        List<T> content = all.stream().skip(offset).limit(size).toList();
-        return new PageImpl<>(content, pageable, all.size());
     }
 
     @Override

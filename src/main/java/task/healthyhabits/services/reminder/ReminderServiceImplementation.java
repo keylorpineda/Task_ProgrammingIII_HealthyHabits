@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,13 +16,11 @@ import task.healthyhabits.models.User;
 import task.healthyhabits.repositories.HabitRepository;
 import task.healthyhabits.repositories.ReminderRepository;
 import task.healthyhabits.repositories.UserRepository;
+import task.healthyhabits.transformers.GenericMapper;
 import task.healthyhabits.transformers.GenericMapperFactory;
 import task.healthyhabits.transformers.InputOutputMapper;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -53,11 +50,9 @@ public class ReminderServiceImplementation implements ReminderService {
     @Override
     @Transactional(readOnly = true)
     public Page<ReminderDTO> myReminders(Long userId, Pageable pageable) {
-        List<ReminderDTO> filtered = reminderRepository.findAll().stream()
-                .filter(r -> r.getUser() != null && r.getUser().getId() != null && r.getUser().getId().equals(userId))
-                .map(r -> mapperFactory.createMapper(Reminder.class, ReminderDTO.class).convertToDTO(r))
-                .collect(Collectors.toList());
-        return paginate(filtered, pageable);
+        GenericMapper<Reminder, ReminderDTO> mapper = mapperFactory.createMapper(Reminder.class, ReminderDTO.class);
+        return reminderRepository.findAllByUserId(userId, pageable)
+                .map(mapper::convertToDTO);
     }
 
     @Override
@@ -73,8 +68,8 @@ public class ReminderServiceImplementation implements ReminderService {
     public ReminderOutputDTO create(ReminderInputDTO input) {
         logger.info("Creating reminder for user {} and habit {}", input.getUserId(), input.getHabitId());
         try {
-            InputOutputMapper<ReminderInputDTO, Reminder, ReminderOutputDTO> io =
-                    mapperFactory.createInputOutputMapper(ReminderInputDTO.class, Reminder.class, ReminderOutputDTO.class);
+            InputOutputMapper<ReminderInputDTO, Reminder, ReminderOutputDTO> io = mapperFactory
+                    .createInputOutputMapper(ReminderInputDTO.class, Reminder.class, ReminderOutputDTO.class);
             User user = userRepository.findById(input.getUserId())
                     .orElseThrow(() -> {
                         logger.warn("User {} not found for reminder creation", input.getUserId());
@@ -107,8 +102,8 @@ public class ReminderServiceImplementation implements ReminderService {
     public ReminderOutputDTO update(Long id, ReminderInputDTO input) {
         logger.info("Updating reminder {} with input {}", id, input);
         try {
-            InputOutputMapper<ReminderInputDTO, Reminder, ReminderOutputDTO> io =
-                    mapperFactory.createInputOutputMapper(ReminderInputDTO.class, Reminder.class, ReminderOutputDTO.class);
+            InputOutputMapper<ReminderInputDTO, Reminder, ReminderOutputDTO> io = mapperFactory
+                    .createInputOutputMapper(ReminderInputDTO.class, Reminder.class, ReminderOutputDTO.class);
             Reminder reminder = reminderRepository.findById(id)
                     .orElseThrow(() -> {
                         logger.warn("Reminder {} not found for update", id);
@@ -130,8 +125,10 @@ public class ReminderServiceImplementation implements ReminderService {
                         });
                 reminder.setHabit(habit);
             }
-            if (input.getTime() != null) reminder.setTime(input.getTime());
-            if (input.getFrequency() != null) reminder.setFrequency(input.getFrequency());
+            if (input.getTime() != null)
+                reminder.setTime(input.getTime());
+            if (input.getFrequency() != null)
+                reminder.setFrequency(input.getFrequency());
             reminder = reminderRepository.save(reminder);
             ReminderOutputDTO output = io.convertToOutput(reminder);
             logger.info("Updated reminder {} successfully", id);
@@ -160,13 +157,5 @@ public class ReminderServiceImplementation implements ReminderService {
             logger.error("Unexpected error deleting reminder {}", id, ex);
             throw ex;
         }
-    }
-
-    private static <T> Page<T> paginate(List<T> all, Pageable pageable) {
-        int offset = (int) pageable.getOffset();
-        int size = pageable.getPageSize();
-        if (offset >= all.size()) return new PageImpl<>(new ArrayList<>(), pageable, all.size());
-        List<T> content = all.stream().skip(offset).limit(size).collect(Collectors.toList());
-        return new PageImpl<>(content, pageable, all.size());
     }
 }
