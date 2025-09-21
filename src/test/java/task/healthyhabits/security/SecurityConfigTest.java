@@ -1,6 +1,5 @@
 package task.healthyhabits.security;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -22,17 +21,21 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.NullSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
+import org.springframework.security.web.session.SessionManagementFilter;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import task.healthyhabits.security.JWT.JwtAuthFilter;
-import task.healthyhabits.security.SecurityConfig;
+
 
 @ExtendWith(MockitoExtension.class)
+
 class SecurityConfigTest {
 
     @Mock
@@ -79,7 +82,26 @@ class SecurityConfigTest {
 
         assertThat(usernameIndex).isGreaterThanOrEqualTo(0);
         assertThat(jwtIndex).isLessThan(usernameIndex);
-        assertThat(http.getSharedObject(SessionCreationPolicy.class)).isEqualTo(SessionCreationPolicy.STATELESS);
+       
+        SessionManagementFilter sessionManagementFilter = filters.stream()
+                .filter(SessionManagementFilter.class::isInstance)
+                .map(SessionManagementFilter.class::cast)
+                .findFirst()
+                .orElseThrow();
+
+        Object sessionManagementRepository = ReflectionTestUtils
+                .getField(sessionManagementFilter, "securityContextRepository");
+        assertThat(sessionManagementRepository).isInstanceOf(NullSecurityContextRepository.class);
+
+        SecurityContextHolderFilter contextHolderFilter = filters.stream()
+                .filter(SecurityContextHolderFilter.class::isInstance)
+                .map(SecurityContextHolderFilter.class::cast)
+                .findFirst()
+                .orElseThrow();
+
+        Object contextHolderRepository = ReflectionTestUtils
+                .getField(contextHolderFilter, "securityContextRepository");
+        assertThat(contextHolderRepository).isInstanceOf(NullSecurityContextRepository.class);
     }
 
     @Test
