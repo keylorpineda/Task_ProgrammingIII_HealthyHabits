@@ -27,7 +27,7 @@ public class GlobalExceptionHandler extends DataFetcherExceptionResolverAdapter 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @Override
-    protected GraphQLError resolveToSingleError(Throwable ex, DataFetchingEnvironment env) {
+    public GraphQLError resolveToSingleError(Throwable ex, DataFetchingEnvironment env) {
          if (ex instanceof BusinessException businessException) {
             return handleBusinessException(businessException, env);
         }
