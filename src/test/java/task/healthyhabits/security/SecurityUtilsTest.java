@@ -8,6 +8,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import task.healthyhabits.models.Permission;
@@ -46,15 +48,15 @@ class SecurityUtilsTest {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         assertThatThrownBy(() -> SecurityUtils.requireAny(Permission.USER_EDITOR))
-                .isInstanceOf(SecurityException.class)
-                .hasMessage("Forbidden");
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("Access is denied.");
     }
 
     @Test
     void requireAnyThrowsWhenNoAuthentication() {
         assertThatThrownBy(() -> SecurityUtils.requireAny(Permission.USER_READ))
-                .isInstanceOf(SecurityException.class)
-                .hasMessage("Unauthorized");
+                .isInstanceOf(AuthenticationCredentialsNotFoundException.class)
+                .hasMessage("Authentication is required to access this resource.");
     }
 
     @Test
@@ -64,8 +66,8 @@ class SecurityUtilsTest {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         assertThatThrownBy(() -> SecurityUtils.requireAny(Permission.USER_READ))
-                .isInstanceOf(SecurityException.class)
-                .hasMessage("Unauthorized");
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("Access is denied.");
     }
 
     @Test
@@ -75,7 +77,7 @@ class SecurityUtilsTest {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         assertThatThrownBy(() -> SecurityUtils.requireAny(Permission.HABIT_EDITOR))
-                .isInstanceOf(SecurityException.class)
-                .hasMessage("Forbidden");
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("Access is denied.");
     }
 }

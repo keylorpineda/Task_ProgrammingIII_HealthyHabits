@@ -65,6 +65,7 @@ class GlobalExceptionHandlerTest {
         GraphQLError error = handler.invoke(new AuthenticationCredentialsNotFoundException("missing"), environment);
 
         assertThat(error.getErrorType()).isEqualTo(ErrorType.UNAUTHORIZED);
+         assertThat(error.getMessage()).isEqualTo("Authentication failed. Please verify your credentials.");
         assertThat(error.getExtensions()).containsEntry("code", ErrorCode.BAD_CREDENTIALS.name());
     }
 
