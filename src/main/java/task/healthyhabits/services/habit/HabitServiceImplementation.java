@@ -1,6 +1,8 @@
 package task.healthyhabits.services.habit;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,14 +22,23 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class HabitServiceImplementation implements HabitService {
 
+    private static final Logger logger = LogManager.getLogger(HabitServiceImplementation.class);
     private final HabitRepository habitRepository;
     private final GenericMapperFactory mapperFactory;
 
     @Override
     @Transactional(readOnly = true)
     public Page<HabitDTO> list(Pageable pageable) {
-        return habitRepository.findAll(pageable)
-                .map(entity -> mapperFactory.createMapper(Habit.class, HabitDTO.class).convertToDTO(entity));
+        logger.info("Listing habits with pageable {}", pageable);
+        try {
+            Page<HabitDTO> habits = habitRepository.findAll(pageable)
+                    .map(entity -> mapperFactory.createMapper(Habit.class, HabitDTO.class).convertToDTO(entity));
+            logger.info("Listed {} habits", habits.getNumberOfElements());
+            return habits;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error listing habits with pageable {}", pageable, ex);
+            throw ex;
+        }
     }
 
     @Override
@@ -48,32 +59,63 @@ public class HabitServiceImplementation implements HabitService {
     @Override
     @Transactional
     public HabitOutputDTO create(HabitInputDTO input) {
-        InputOutputMapper<HabitInputDTO, Habit, HabitOutputDTO> io =
-                mapperFactory.createInputOutputMapper(HabitInputDTO.class, Habit.class, HabitOutputDTO.class);
-        Habit habit = io.convertFromInput(input);
-        habit = habitRepository.save(habit);
-        return io.convertToOutput(habit);
+        logger.info("Creating habit with input {}", input);
+        try {
+            InputOutputMapper<HabitInputDTO, Habit, HabitOutputDTO> io =
+                    mapperFactory.createInputOutputMapper(HabitInputDTO.class, Habit.class, HabitOutputDTO.class);
+            Habit habit = io.convertFromInput(input);
+            habit = habitRepository.save(habit);
+            HabitOutputDTO output = io.convertToOutput(habit);
+            logger.info("Created habit with id {}", habit.getId());
+            return output;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error creating habit with input {}", input, ex);
+            throw ex;
+        }
     }
 
     @Override
     @Transactional
     public HabitOutputDTO update(Long id, HabitInputDTO input) {
-        InputOutputMapper<HabitInputDTO, Habit, HabitOutputDTO> io =
-                mapperFactory.createInputOutputMapper(HabitInputDTO.class, Habit.class, HabitOutputDTO.class);
-        Habit habit = habitRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Habit not found"));
-        if (input.getName() != null) habit.setName(input.getName());
-        if (input.getCategory() != null) habit.setCategory(input.getCategory());
-        if (input.getDescription() != null) habit.setDescription(input.getDescription());
-        habit = habitRepository.save(habit);
-        return io.convertToOutput(habit);
+        logger.info("Updating habit {} with input {}", id, input);
+        try {
+            InputOutputMapper<HabitInputDTO, Habit, HabitOutputDTO> io =
+                    mapperFactory.createInputOutputMapper(HabitInputDTO.class, Habit.class, HabitOutputDTO.class);
+            Habit habit = habitRepository.findById(id)
+                    .orElseThrow(() -> {
+                        logger.warn("Habit {} not found for update", id);
+                        return new NoSuchElementException("Habit not found");
+                    });
+            if (input.getName() != null) habit.setName(input.getName());
+            if (input.getCategory() != null) habit.setCategory(input.getCategory());
+            if (input.getDescription() != null) habit.setDescription(input.getDescription());
+            habit = habitRepository.save(habit);
+            HabitOutputDTO output = io.convertToOutput(habit);
+            logger.info("Updated habit {} successfully", id);
+            return output;
+        } catch (NoSuchElementException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error updating habit {}", id, ex);
+            throw ex;
+        }
     }
 
     @Override
     @Transactional
     public boolean delete(Long id) {
-        if (!habitRepository.existsById(id)) return false;
-        habitRepository.deleteById(id);
-        return true;
+        logger.info("Deleting habit {}", id);
+        try {
+            if (!habitRepository.existsById(id)) {
+                logger.warn("Habit {} not found for deletion", id);
+                return false;
+            }
+            habitRepository.deleteById(id);
+            logger.info("Deleted habit {}", id);
+            return true;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error deleting habit {}", id, ex);
+            throw ex;
+        }
     }
 }

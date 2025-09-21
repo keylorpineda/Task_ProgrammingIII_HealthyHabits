@@ -1,6 +1,8 @@
 package task.healthyhabits.services.user;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +30,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserServiceImplementation implements UserService {
 
+    private static final Logger logger = LogManager.getLogger(UserServiceImplementation.class);
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final HabitRepository habitRepository;
@@ -45,25 +48,38 @@ public class UserServiceImplementation implements UserService {
     public UserDTO getAuthenticatedUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
+            logger.warn("Missing authentication when fetching current user");
             throw new NoSuchElementException("Missing authentication");
         }
         String email = auth.getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("User not found for authentication subject"));
+                .orElseThrow(() -> {
+                    logger.warn("User not found for authentication subject {}", email);
+                    return new NoSuchElementException("User not found for authentication subject");
+                });
         return mapperFactory.createMapper(User.class, UserDTO.class).convertToDTO(user);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<UserDTO> list(Pageable pageable) {
-        return userRepository.findAll(pageable)
-                .map(e -> mapperFactory.createMapper(User.class, UserDTO.class).convertToDTO(e));
+        logger.info("Listing users with pageable {}", pageable);
+        try {
+            Page<UserDTO> users = userRepository.findAll(pageable)
+                    .map(e -> mapperFactory.createMapper(User.class, UserDTO.class).convertToDTO(e));
+            logger.info("Listed {} users", users.getNumberOfElements());
+            return users;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error listing users with pageable {}", pageable, ex);
+            throw ex;
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<HabitDTO> listMyFavoriteHabits(Long userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
+            logger.warn("User {} not found when listing favorite habits", userId);
             throw new NoSuchElementException("User not found");
         }
 
@@ -74,62 +90,103 @@ public class UserServiceImplementation implements UserService {
     @Override
     @Transactional
     public UserOutputDTO create(UserInputDTO input) {
-        if (userRepository.existsByEmail(input.getEmail()))
-            throw new IllegalArgumentException("Email already registered");
-        InputOutputMapper<UserInputDTO, User, UserOutputDTO> io = mapperFactory
-                .createInputOutputMapper(UserInputDTO.class, User.class, UserOutputDTO.class);
-        User user = io.convertFromInput(input);
-        user.setPassword(passwordHashService.encode(input.getPassword()));
-        user.setRoles(resolveRolesInline(input));
-        user.setFavoriteHabits(resolveHabitsInline(input));
-        if (input.getCoachId() != null) {
-            userRepository.findById(input.getCoachId()).ifPresent(user::setCoach);
+        logger.info("Creating user with email {}", input.getEmail());
+        try {
+            if (userRepository.existsByEmail(input.getEmail())) {
+                logger.warn("Email {} already registered", input.getEmail());
+                throw new IllegalArgumentException("Email already registered");
+            }
+            InputOutputMapper<UserInputDTO, User, UserOutputDTO> io = mapperFactory
+                    .createInputOutputMapper(UserInputDTO.class, User.class, UserOutputDTO.class);
+            User user = io.convertFromInput(input);
+            user.setPassword(passwordHashService.encode(input.getPassword()));
+            user.setRoles(resolveRolesInline(input));
+            user.setFavoriteHabits(resolveHabitsInline(input));
+            if (input.getCoachId() != null) {
+                userRepository.findById(input.getCoachId())
+                        .ifPresentOrElse(user::setCoach, () -> logger.warn("Coach {} not found for user creation", input.getCoachId()));
+            }
+            user = userRepository.save(user);
+            UserOutputDTO output = io.convertToOutput(user);
+            logger.info("Created user {} with email {}", user.getId(), user.getEmail());
+            return output;
+        } catch (IllegalArgumentException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error creating user with email {}", input.getEmail(), ex);
+            throw ex;
         }
-        user = userRepository.save(user);
-        return io.convertToOutput(user);
     }
 
     @Override
     @Transactional
     public UserOutputDTO update(Long id, UserInputDTO input) {
-        InputOutputMapper<UserInputDTO, User, UserOutputDTO> io = mapperFactory
-                .createInputOutputMapper(UserInputDTO.class, User.class, UserOutputDTO.class);
-        User user = userRepository.findById(id).orElseThrow(() -> new NoSuchElementException("User not found"));
+        logger.info("Updating user {} with input {}", id, input);
+        try {
+            InputOutputMapper<UserInputDTO, User, UserOutputDTO> io = mapperFactory
+                    .createInputOutputMapper(UserInputDTO.class, User.class, UserOutputDTO.class);
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> {
+                        logger.warn("User {} not found for update", id);
+                        return new NoSuchElementException("User not found");
+                    });
 
-        if (input.getName() != null)
-            user.setName(input.getName());
-        if (input.getEmail() != null && !input.getEmail().equals(user.getEmail())) {
-            if (userRepository.existsByEmail(input.getEmail()))
-                throw new IllegalArgumentException("Email already in use");
-            user.setEmail(input.getEmail());
-        }
-        if (input.getPassword() != null && !input.getPassword().isBlank()) {
-            user.setPassword(passwordHashService.encode(input.getPassword()));
-        }
-        if (input.getRoles() != null)
-            user.setRoles(resolveRolesInline(input));
-        if (input.getFavoriteHabits() != null)
-            user.setFavoriteHabits(resolveHabitsInline(input));
-        if (input.getCoachId() != null) {
-            if (input.getCoachId() == 0) {
-                user.setCoach(null);
-            } else {
-                User coach = userRepository.findById(input.getCoachId())
-                        .orElseThrow(() -> new NoSuchElementException("Coach not found"));
-                user.setCoach(coach);
+            if (input.getName() != null)
+                user.setName(input.getName());
+            if (input.getEmail() != null && !input.getEmail().equals(user.getEmail())) {
+                if (userRepository.existsByEmail(input.getEmail())) {
+                    logger.warn("Email {} already in use for another user", input.getEmail());
+                    throw new IllegalArgumentException("Email already in use");
+                }
+                user.setEmail(input.getEmail());
             }
+            if (input.getPassword() != null && !input.getPassword().isBlank()) {
+                user.setPassword(passwordHashService.encode(input.getPassword()));
+            }
+            if (input.getRoles() != null)
+                user.setRoles(resolveRolesInline(input));
+            if (input.getFavoriteHabits() != null)
+                user.setFavoriteHabits(resolveHabitsInline(input));
+            if (input.getCoachId() != null) {
+                if (input.getCoachId() == 0) {
+                    user.setCoach(null);
+                } else {
+                    User coach = userRepository.findById(input.getCoachId())
+                            .orElseThrow(() -> {
+                                logger.warn("Coach {} not found for user update", input.getCoachId());
+                                return new NoSuchElementException("Coach not found");
+                            });
+                    user.setCoach(coach);
+                }
+            }
+            user = userRepository.save(user);
+            UserOutputDTO output = io.convertToOutput(user);
+            logger.info("Updated user {} successfully", id);
+            return output;
+        } catch (IllegalArgumentException | NoSuchElementException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error updating user {}", id, ex);
+            throw ex;
         }
-        user = userRepository.save(user);
-        return io.convertToOutput(user);
     }
 
     @Override
     @Transactional
     public boolean delete(Long id) {
-        if (!userRepository.existsById(id))
-            return false;
-        userRepository.deleteById(id);
-        return true;
+        logger.info("Deleting user {}", id);
+        try {
+            if (!userRepository.existsById(id)) {
+                logger.warn("User {} not found for deletion", id);
+                return false;
+            }
+            userRepository.deleteById(id);
+            logger.info("Deleted user {}", id);
+            return true;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error deleting user {}", id, ex);
+            throw ex;
+        }
     }
 
     @Override

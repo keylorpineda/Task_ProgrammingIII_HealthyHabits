@@ -37,45 +37,64 @@ public class AuthServiceImplementation implements AuthService {
     @Transactional
     public AuthTokenOutputDTO register(UserInputDTO input) {
         logger.info("Registering new user");
-        if (userRepository.existsByEmail(input.getEmail())) {
-            logger.warn("Email already registered");
-            throw new IllegalArgumentException("Email already registered");
+        try {
+            if (userRepository.existsByEmail(input.getEmail())) {
+                logger.warn("Email already registered");
+                throw new IllegalArgumentException("Email already registered");
+            }
+            InputOutputMapper<UserInputDTO, User, UserOutputDTO> io = mapperFactory
+                    .createInputOutputMapper(UserInputDTO.class, User.class, UserOutputDTO.class);
+            User user = io.convertFromInput(input);
+            user.setPassword(passwordHashService.encode(input.getPassword()));
+            user = userRepository.save(user);
+            Role defaultRole = roleRepository.findByPermission(Permission.USER_READ)
+                    .orElseThrow(() -> {
+                        logger.error("Default role not found while registering user");
+                        return new IllegalStateException("Default role not found");
+                    });
+            user.setRoles(java.util.Collections.singletonList(defaultRole));
+            user = userRepository.save(user);
+            String token = jwtService.generateToken(user.getEmail());
+            Date exp = jwtService.extractExpiration(token);
+            OffsetDateTime expiresAt = OffsetDateTime.ofInstant(exp.toInstant(), ZoneOffset.UTC);
+            UserOutputDTO outUser = io.convertToOutput(user);
+            logger.info("Registered user {} with email {}", user.getId(), user.getEmail());
+            return new AuthTokenOutputDTO(token, expiresAt, outUser);
+        } catch (IllegalArgumentException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error registering user with email {}", input.getEmail(), ex);
+            throw ex;
         }
-        InputOutputMapper<UserInputDTO, User, UserOutputDTO> io = mapperFactory
-                .createInputOutputMapper(UserInputDTO.class, User.class, UserOutputDTO.class);
-        User user = io.convertFromInput(input);
-        user.setPassword(passwordHashService.encode(input.getPassword()));
-        user = userRepository.save(user);
-        Role defaultRole = roleRepository.findByPermission(Permission.USER_READ)
-                .orElseThrow(() -> new IllegalStateException("Default role not found"));
-        user.setRoles(java.util.Collections.singletonList(defaultRole));
-        user = userRepository.save(user);
-        String token = jwtService.generateToken(user.getEmail());
-        Date exp = jwtService.extractExpiration(token);
-        OffsetDateTime expiresAt = OffsetDateTime.ofInstant(exp.toInstant(), ZoneOffset.UTC);
-        UserOutputDTO outUser = io.convertToOutput(user);
-        return new AuthTokenOutputDTO(token, expiresAt, outUser);
     }
 
     @Override
     @Transactional(readOnly = true)
     public AuthTokenOutputDTO login(String email, String password) {
         logger.info("Login attempt");
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> {
-                    logger.warn("Invalid credentials");
-                    return new BadCredentialsException("Invalid credentials");
-                });
-        if (!passwordHashService.matches(password, user.getPassword())) {
-            logger.warn("Invalid credentials");
-            throw new BadCredentialsException("Invalid credentials");
+        try {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> {
+                        logger.warn("Invalid credentials");
+                        return new BadCredentialsException("Invalid credentials");
+                    });
+            if (!passwordHashService.matches(password, user.getPassword())) {
+                logger.warn("Invalid credentials");
+                throw new BadCredentialsException("Invalid credentials");
+            }
+            String token = jwtService.generateToken(user.getEmail());
+            Date exp = jwtService.extractExpiration(token);
+            OffsetDateTime expiresAt = OffsetDateTime.ofInstant(exp.toInstant(), ZoneOffset.UTC);
+            InputOutputMapper<UserInputDTO, User, UserOutputDTO> io = mapperFactory
+                    .createInputOutputMapper(UserInputDTO.class, User.class, UserOutputDTO.class);
+            logger.info("Login successful for user {}", email);
+            return new AuthTokenOutputDTO(token, expiresAt, io.convertToOutput(user));
+        } catch (BadCredentialsException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error during login for user {}", email, ex);
+            throw ex;
         }
-        String token = jwtService.generateToken(user.getEmail());
-        Date exp = jwtService.extractExpiration(token);
-        OffsetDateTime expiresAt = OffsetDateTime.ofInstant(exp.toInstant(), ZoneOffset.UTC);
-        InputOutputMapper<UserInputDTO, User, UserOutputDTO> io = mapperFactory
-                .createInputOutputMapper(UserInputDTO.class, User.class, UserOutputDTO.class);
-        return new AuthTokenOutputDTO(token, expiresAt, io.convertToOutput(user));
     }
 
     @Override
