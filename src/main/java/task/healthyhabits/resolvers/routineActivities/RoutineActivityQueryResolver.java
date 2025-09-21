@@ -35,11 +35,23 @@ public class RoutineActivityQueryResolver {
         return routineActivityService.findByIdOrNull(id);
     }
 
-    public record RoutineActivityPage(List<RoutineActivityDTO> content, int totalPages, long totalElements, int size,
-            int number) {
+    public record RoutineActivityPage(
+            List<RoutineActivityDTO> content,
+            int totalPages,
+            long totalElements,
+            int size,
+            int number,
+            boolean hasNext,
+            boolean hasPrevious) {
         public static RoutineActivityPage from(PageDTO<RoutineActivityDTO> dto) {
-            return new RoutineActivityPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(),
-                    dto.number());
+            return new RoutineActivityPage(
+                    dto.content(),
+                    dto.totalPages(),
+                    dto.totalElements(),
+                    dto.size(),
+                    dto.number(),
+                    dto.hasNext(),
+                    dto.hasPrevious());
         }
     }
 }

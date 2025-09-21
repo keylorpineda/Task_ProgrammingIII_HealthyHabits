@@ -63,15 +63,43 @@ public class UserQueryResolver {
         return UserPage.from(userPageDTO);
     }
 
-   public record UserPage(List<UserDTO> content, int totalPages, long totalElements, int size, int number) {
+    public record UserPage(
+            List<UserDTO> content,
+            int totalPages,
+            long totalElements,
+            int size,
+            int number,
+            boolean hasNext,
+            boolean hasPrevious) {
         public static UserPage from(PageDTO<UserDTO> dto) {
-            return new UserPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+            return new UserPage(
+                    dto.content(),
+                    dto.totalPages(),
+                    dto.totalElements(),
+                    dto.size(),
+                    dto.number(),
+                    dto.hasNext(),
+                    dto.hasPrevious());
         }
     }
 
-    public record HabitPage(List<HabitDTO> content, int totalPages, long totalElements, int size, int number) {
+    public record HabitPage(
+            List<HabitDTO> content,
+            int totalPages,
+            long totalElements,
+            int size,
+            int number,
+            boolean hasNext,
+            boolean hasPrevious) {
         public static HabitPage from(PageDTO<HabitDTO> dto) {
-            return new HabitPage(dto.content(), dto.totalPages(), dto.totalElements(), dto.size(), dto.number());
+            return new HabitPage(
+                    dto.content(),
+                    dto.totalPages(),
+                    dto.totalElements(),
+                    dto.size(),
+                    dto.number(),
+                    dto.hasNext(),
+                    dto.hasPrevious());
         }
     }
 }
