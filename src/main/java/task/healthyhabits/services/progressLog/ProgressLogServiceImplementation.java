@@ -1,6 +1,8 @@
 package task.healthyhabits.services.progressLog;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,7 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class ProgressLogServiceImplementation implements ProgressLogService {
 
+    private static final Logger logger = LogManager.getLogger(ProgressLogServiceImplementation.class);
     private final ProgressLogRepository progressLogRepository;
     private final CompletedActivityRepository completedActivityRepository;
     private final UserRepository userRepository;
@@ -41,9 +44,17 @@ public class ProgressLogServiceImplementation implements ProgressLogService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProgressLogDTO> list(Pageable pageable) {
-        return progressLogRepository.findAll(pageable)
-                .map(entity -> mapperFactory.createMapper(ProgressLog.class, ProgressLogDTO.class)
-                        .convertToDTO(entity));
+        logger.info("Listing progress logs with pageable {}", pageable);
+        try {
+            Page<ProgressLogDTO> logs = progressLogRepository.findAll(pageable)
+                    .map(entity -> mapperFactory.createMapper(ProgressLog.class, ProgressLogDTO.class)
+                            .convertToDTO(entity));
+            logger.info("Listed {} progress logs", logs.getNumberOfElements());
+            return logs;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error listing progress logs with pageable {}", pageable, ex);
+            throw ex;
+        }
     }
 
     @Override
@@ -72,81 +83,132 @@ public class ProgressLogServiceImplementation implements ProgressLogService {
     @Override
     @Transactional
     public ProgressLogOutputDTO create(ProgressLogInputDTO input) {
-        InputOutputMapper<ProgressLogInputDTO, ProgressLog, ProgressLogOutputDTO> io = mapperFactory
-                .createInputOutputMapper(ProgressLogInputDTO.class, ProgressLog.class, ProgressLogOutputDTO.class);
-        User user = userRepository.findById(input.getUserId())
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
-        Routine routine = routineRepository.findById(input.getRoutineId())
-                .orElseThrow(() -> new NoSuchElementException("Routine not found"));
-        ProgressLog progressLog = new ProgressLog();
-        progressLog.setUser(user);
-        progressLog.setRoutine(routine);
-        progressLog.setDate(input.getDate());
-        progressLog = progressLogRepository.save(progressLog);
-        if (input.getCompletedActivityInputs() != null) {
-            List<CompletedActivity> list = new ArrayList<>();
-            for (CompletedActivityInputDTO caIn : input.getCompletedActivityInputs()) {
-                Habit habit = habitRepository.findById(caIn.getHabitId())
-                        .orElseThrow(() -> new NoSuchElementException("Habit not found"));
-                CompletedActivity ca = new CompletedActivity();
-                ca.setHabit(habit);
-                ca.setCompletedAt(caIn.getCompletedAt());
-                ca.setNotes(caIn.getNotes());
-                ca.setProgressLog(progressLog);
-                list.add(ca);
+        logger.info("Creating progress log for user {} and routine {}", input.getUserId(), input.getRoutineId());
+        try {
+            InputOutputMapper<ProgressLogInputDTO, ProgressLog, ProgressLogOutputDTO> io = mapperFactory
+                    .createInputOutputMapper(ProgressLogInputDTO.class, ProgressLog.class, ProgressLogOutputDTO.class);
+            User user = userRepository.findById(input.getUserId())
+                    .orElseThrow(() -> {
+                        logger.warn("User {} not found for progress log creation", input.getUserId());
+                        return new NoSuchElementException("User not found");
+                    });
+            Routine routine = routineRepository.findById(input.getRoutineId())
+                    .orElseThrow(() -> {
+                        logger.warn("Routine {} not found for progress log creation", input.getRoutineId());
+                        return new NoSuchElementException("Routine not found");
+                    });
+            ProgressLog progressLog = new ProgressLog();
+            progressLog.setUser(user);
+            progressLog.setRoutine(routine);
+            progressLog.setDate(input.getDate());
+            progressLog = progressLogRepository.save(progressLog);
+            if (input.getCompletedActivityInputs() != null) {
+                List<CompletedActivity> list = new ArrayList<>();
+                for (CompletedActivityInputDTO caIn : input.getCompletedActivityInputs()) {
+                    Habit habit = habitRepository.findById(caIn.getHabitId())
+                            .orElseThrow(() -> {
+                                logger.warn("Habit {} not found for completed activity creation", caIn.getHabitId());
+                                return new NoSuchElementException("Habit not found");
+                            });
+                    CompletedActivity ca = new CompletedActivity();
+                    ca.setHabit(habit);
+                    ca.setCompletedAt(caIn.getCompletedAt());
+                    ca.setNotes(caIn.getNotes());
+                    ca.setProgressLog(progressLog);
+                    list.add(ca);
+                }
+                completedActivityRepository.saveAll(list);
+                progressLog.setCompletedActivities(list);
             }
-            completedActivityRepository.saveAll(list);
-            progressLog.setCompletedActivities(list);
+            ProgressLogOutputDTO output = io.convertToOutput(progressLog);
+            logger.info("Created progress log {} for user {}", progressLog.getId(), user.getId());
+            return output;
+        } catch (NoSuchElementException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error creating progress log for user {}", input.getUserId(), ex);
+            throw ex;
         }
-        return io.convertToOutput(progressLog);
     }
 
     @Override
     @Transactional
     public ProgressLogOutputDTO update(Long id, ProgressLogInputDTO input) {
-        InputOutputMapper<ProgressLogInputDTO, ProgressLog, ProgressLogOutputDTO> io = mapperFactory
-                .createInputOutputMapper(ProgressLogInputDTO.class, ProgressLog.class, ProgressLogOutputDTO.class);
-        ProgressLog progressLog = progressLogRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("ProgressLog not found"));
-        User user = userRepository.findById(input.getUserId())
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
-        Routine routine = routineRepository.findById(input.getRoutineId())
-                .orElseThrow(() -> new NoSuchElementException("Routine not found"));
-        progressLog.setUser(user);
-        progressLog.setRoutine(routine);
-        progressLog.setDate(input.getDate());
-        if (progressLog.getCompletedActivities() != null && !progressLog.getCompletedActivities().isEmpty()) {
-            completedActivityRepository.deleteAll(new ArrayList<>(progressLog.getCompletedActivities()));
-            progressLog.getCompletedActivities().clear();
-        }
-        if (input.getCompletedActivityInputs() != null) {
-            List<CompletedActivity> list = new ArrayList<>();
-            for (CompletedActivityInputDTO caIn : input.getCompletedActivityInputs()) {
-                Habit habit = habitRepository.findById(caIn.getHabitId())
-                        .orElseThrow(() -> new NoSuchElementException("Habit not found"));
-                CompletedActivity ca = new CompletedActivity();
-                ca.setHabit(habit);
-                ca.setCompletedAt(caIn.getCompletedAt());
-                ca.setNotes(caIn.getNotes());
-                ca.setProgressLog(progressLog);
-                list.add(ca);
+        logger.info("Updating progress log {} with input {}", id, input);
+        try {
+            InputOutputMapper<ProgressLogInputDTO, ProgressLog, ProgressLogOutputDTO> io = mapperFactory
+                    .createInputOutputMapper(ProgressLogInputDTO.class, ProgressLog.class, ProgressLogOutputDTO.class);
+            ProgressLog progressLog = progressLogRepository.findById(id)
+                    .orElseThrow(() -> {
+                        logger.warn("Progress log {} not found for update", id);
+                        return new NoSuchElementException("ProgressLog not found");
+                    });
+            User user = userRepository.findById(input.getUserId())
+                    .orElseThrow(() -> {
+                        logger.warn("User {} not found for progress log update", input.getUserId());
+                        return new NoSuchElementException("User not found");
+                    });
+            Routine routine = routineRepository.findById(input.getRoutineId())
+                    .orElseThrow(() -> {
+                        logger.warn("Routine {} not found for progress log update", input.getRoutineId());
+                        return new NoSuchElementException("Routine not found");
+                    });
+            progressLog.setUser(user);
+            progressLog.setRoutine(routine);
+            progressLog.setDate(input.getDate());
+            if (progressLog.getCompletedActivities() != null && !progressLog.getCompletedActivities().isEmpty()) {
+                completedActivityRepository.deleteAll(new ArrayList<>(progressLog.getCompletedActivities()));
+                progressLog.getCompletedActivities().clear();
             }
-            completedActivityRepository.saveAll(list);
-            progressLog.setCompletedActivities(list);
+            if (input.getCompletedActivityInputs() != null) {
+                List<CompletedActivity> list = new ArrayList<>();
+                for (CompletedActivityInputDTO caIn : input.getCompletedActivityInputs()) {
+                    Habit habit = habitRepository.findById(caIn.getHabitId())
+                            .orElseThrow(() -> {
+                                logger.warn("Habit {} not found for completed activity update", caIn.getHabitId());
+                                return new NoSuchElementException("Habit not found");
+                            });
+                    CompletedActivity ca = new CompletedActivity();
+                    ca.setHabit(habit);
+                    ca.setCompletedAt(caIn.getCompletedAt());
+                    ca.setNotes(caIn.getNotes());
+                    ca.setProgressLog(progressLog);
+                    list.add(ca);
+                }
+                completedActivityRepository.saveAll(list);
+                progressLog.setCompletedActivities(list);
+            }
+            progressLog = progressLogRepository.save(progressLog);
+            ProgressLogOutputDTO output = io.convertToOutput(progressLog);
+            logger.info("Updated progress log {} successfully", id);
+            return output;
+        } catch (NoSuchElementException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error updating progress log {}", id, ex);
+            throw ex;
         }
-        progressLog = progressLogRepository.save(progressLog);
-        return io.convertToOutput(progressLog);
     }
 
     @Override
     @Transactional
     public boolean delete(Long id) {
-        ProgressLog progressLog = progressLogRepository.findById(id).orElse(null);
-        if (progressLog == null) return false;
-        if (progressLog.getCompletedActivities() != null && !progressLog.getCompletedActivities().isEmpty()) {
-            completedActivityRepository.deleteAll(new ArrayList<>(progressLog.getCompletedActivities()));
+        logger.info("Deleting progress log {}", id);
+        try {
+            ProgressLog progressLog = progressLogRepository.findById(id).orElse(null);
+            if (progressLog == null) {
+                logger.warn("Progress log {} not found for deletion", id);
+                return false;
+            }
+            if (progressLog.getCompletedActivities() != null && !progressLog.getCompletedActivities().isEmpty()) {
+                completedActivityRepository.deleteAll(new ArrayList<>(progressLog.getCompletedActivities()));
+            }
+            progressLogRepository.deleteById(id);
+            logger.info("Deleted progress log {}", id);
+            return true;
+        } catch (RuntimeException ex) {
+            logger.error("Unexpected error deleting progress log {}", id, ex);
+            throw ex;
         }
-        progressLogRepository.deleteById(id);
-        return true;
     }
 }
