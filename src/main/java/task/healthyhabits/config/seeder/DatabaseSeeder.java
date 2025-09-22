@@ -66,7 +66,6 @@ public class DatabaseSeeder implements CommandLineRunner {
     private static final int MIN_BATCH_SIZE = 100;
     private static final int MAX_BATCH_SIZE = 5000;
     private static final int MAX_TARGET_USERS = 10_000;
-
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final HabitRepository habitRepository;
@@ -88,19 +87,12 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (progressLogRepository.count() > 0) {
-            log.info("Seeding skipped because progress logs already exist");
-            return;
-        }
 
         int batchSize = Math.max(MIN_BATCH_SIZE, configuredBatchSize);
         if (batchSize > MAX_BATCH_SIZE) {
             log.warn(
                     "Configured batch size {} exceeds safe maximum {}. Using {} instead.",
-                    batchSize,
-                    MAX_BATCH_SIZE,
-                    MAX_BATCH_SIZE
-            );
+                    batchSize, MAX_BATCH_SIZE, MAX_BATCH_SIZE);
             batchSize = MAX_BATCH_SIZE;
         }
         configuredBatchSize = batchSize;
@@ -110,10 +102,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (targetUsers < requestedUsers) {
             log.warn(
                     "Configured target users {} exceeds safe maximum {}. Using {} instead.",
-                    requestedUsers,
-                    MAX_TARGET_USERS,
-                    MAX_TARGET_USERS
-            );
+                    requestedUsers, MAX_TARGET_USERS, MAX_TARGET_USERS);
         }
 
         int requestedHabits = Math.max(DEFAULT_HABIT_MINIMUM, requestedUsers / 5);
@@ -121,22 +110,15 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (targetHabits < requestedHabits) {
             log.warn(
                     "Configured target habits {} exceeds safe maximum {}. Using {} instead.",
-                    requestedHabits,
-                    MAX_TARGET_USERS,
-                    targetHabits
-            );
+                    requestedHabits, MAX_TARGET_USERS, targetHabits);
         }
 
         Locale locale = resolveLocale(localeTag);
         Faker faker = new Faker(locale);
 
         log.info(
-                "Starting database seeding: users={}, habits={}, batchSize={}, locale={}",
-                targetUsers,
-                targetHabits,
-                batchSize,
-                locale
-        );
+                "Starting database seeding (incremental): usersTarget={}, habitsTarget={}, batchSize={}, locale={}",
+                targetUsers, targetHabits, batchSize, locale);
 
         List<Role> roles = roleRepository.findAll();
         if (roles.isEmpty()) {
@@ -151,7 +133,8 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
         seedUsersWithRelatedData(faker, roles, habits, targetUsers, batchSize);
-        log.info("Database seeding completed successfully");
+
+        log.info("Database seeding completed successfully (incremental)");
     }
 
     private Locale resolveLocale(String tag) {
@@ -195,13 +178,12 @@ public class DatabaseSeeder implements CommandLineRunner {
                             "Unable to generate additional unique habits for this batch after {} attempts. Created {} habits instead of {}.",
                             MAX_HABIT_GENERATION_ATTEMPTS,
                             habitBatch.size(),
-                            currentBatch
-                    );
+                            currentBatch);
                     break;
                 }
                 habitBatch.add(habit);
             }
-             if (habitBatch.isEmpty()) {
+            if (habitBatch.isEmpty()) {
                 log.warn("Stopping habit generation early because no unique habits could be created.");
                 break;
             }
@@ -246,8 +228,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             List<Role> roles,
             List<Habit> habits,
             int targetUsers,
-            int batchSize
-    ) {
+            int batchSize) {
         long existingUsers = userRepository.count();
         int availableUsers = (int) Math.min(existingUsers, (long) Integer.MAX_VALUE);
         int toCreate = Math.max(0, targetUsers - availableUsers);
@@ -267,8 +248,10 @@ public class DatabaseSeeder implements CommandLineRunner {
             user.setEmail("seed.user" + emailCounter + "@healthyhabits.local");
             emailCounter++;
             user.setPassword(encodedPassword);
-            user.setRoles(new ArrayList<>(pickRandomElements(roles, determineCount(faker, 1, Math.min(roles.size(), 4)))));
-            user.setFavoriteHabits(new ArrayList<>(pickRandomElements(habits, determineCount(faker, 2, Math.min(habits.size(), 6)))));
+            user.setRoles(
+                    new ArrayList<>(pickRandomElements(roles, determineCount(faker, 1, Math.min(roles.size(), 4)))));
+            user.setFavoriteHabits(
+                    new ArrayList<>(pickRandomElements(habits, determineCount(faker, 2, Math.min(habits.size(), 6)))));
             userBatch.add(user);
 
             if (userBatch.size() >= userBatchSize) {
@@ -290,7 +273,8 @@ public class DatabaseSeeder implements CommandLineRunner {
         generateReminders(faker, users, habits, batchSize);
         List<Routine> routines = generateRoutines(faker, users, habits, batchSize);
         if (!routines.isEmpty()) {
-            Map<Long, List<RoutineActivity>> activitiesByRoutine = generateRoutineActivities(faker, routines, habits, batchSize);
+            Map<Long, List<RoutineActivity>> activitiesByRoutine = generateRoutineActivities(faker, routines, habits,
+                    batchSize);
             generateProgressLogs(faker, routines, activitiesByRoutine, batchSize);
         }
     }
@@ -303,7 +287,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                 Reminder reminder = new Reminder();
                 reminder.setUser(user);
                 reminder.setHabit(selectRandomHabit(habits));
-                reminder.setTime(LocalTime.of(faker.number().numberBetween(5, 22), faker.number().numberBetween(0, 60)));
+                reminder.setTime(
+                        LocalTime.of(faker.number().numberBetween(5, 22), faker.number().numberBetween(0, 60)));
                 reminder.setFrequency(frequencies[faker.number().numberBetween(0, frequencies.length)]);
                 reminders.add(reminder);
             }
@@ -311,8 +296,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (!reminders.isEmpty()) {
             List<List<Reminder>> partitions = partition(
                     reminders,
-                    Math.max(1, Math.min(batchSize, batchSize * REMINDERS_PER_USER))
-            );
+                    Math.max(1, Math.min(batchSize, batchSize * REMINDERS_PER_USER)));
             for (List<Reminder> partition : partitions) {
                 reminderRepository.saveAll(partition);
             }
@@ -335,8 +319,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (!routines.isEmpty()) {
             List<List<Routine>> partitions = partition(
                     routines,
-                    Math.max(1, Math.min(batchSize, batchSize * ROUTINES_PER_USER))
-            );
+                    Math.max(1, Math.min(batchSize, batchSize * ROUTINES_PER_USER)));
             List<Routine> persisted = new ArrayList<>(routines.size());
             for (List<Routine> partition : partitions) {
                 persisted.addAll(routineRepository.saveAll(partition));
@@ -350,8 +333,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             Faker faker,
             List<Routine> routines,
             List<Habit> habits,
-            int batchSize
-    ) {
+            int batchSize) {
         Map<Long, List<RoutineActivity>> activitiesByRoutine = new HashMap<>();
         List<RoutineActivity> activitiesToPersist = new ArrayList<>(routines.size() * ACTIVITIES_PER_ROUTINE);
         for (Routine routine : routines) {
@@ -371,8 +353,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (!activitiesToPersist.isEmpty()) {
             List<List<RoutineActivity>> partitions = partition(
                     activitiesToPersist,
-                    Math.max(1, Math.min(batchSize, batchSize * ACTIVITIES_PER_ROUTINE))
-            );
+                    Math.max(1, Math.min(batchSize, batchSize * ACTIVITIES_PER_ROUTINE)));
             for (List<RoutineActivity> partition : partitions) {
                 routineActivityRepository.saveAll(partition);
             }
@@ -384,11 +365,10 @@ public class DatabaseSeeder implements CommandLineRunner {
             Faker faker,
             List<Routine> routines,
             Map<Long, List<RoutineActivity>> activitiesByRoutine,
-            int batchSize
-    ) {
+            int batchSize) {
         List<ProgressLog> logBatch = new ArrayList<>();
         List<ProgressLogContext> contexts = new ArrayList<>();
-       int logBatchSize = Math.max(1, Math.min(batchSize, batchSize * PROGRESS_LOGS_PER_ROUTINE));
+        int logBatchSize = Math.max(1, Math.min(batchSize, batchSize * PROGRESS_LOGS_PER_ROUTINE));
         for (Routine routine : routines) {
             List<RoutineActivity> activities = activitiesByRoutine.getOrDefault(routine.getId(), List.of());
             for (int i = 0; i < PROGRESS_LOGS_PER_ROUTINE; i++) {
@@ -412,8 +392,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             Faker faker,
             List<ProgressLog> logBatch,
             List<ProgressLogContext> contexts,
-            int batchSize
-    ) {
+            int batchSize) {
         progressLogRepository.saveAll(logBatch);
         List<CompletedActivity> completedActivities = new ArrayList<>(logBatch.size() * COMPLETED_PER_LOG);
         for (ProgressLogContext context : contexts) {
@@ -421,11 +400,13 @@ public class DatabaseSeeder implements CommandLineRunner {
                 continue;
             }
             for (int i = 0; i < COMPLETED_PER_LOG; i++) {
-                RoutineActivity activity = context.activities().get(ThreadLocalRandom.current().nextInt(context.activities().size()));
+                RoutineActivity activity = context.activities()
+                        .get(ThreadLocalRandom.current().nextInt(context.activities().size()));
                 CompletedActivity completed = new CompletedActivity();
                 completed.setProgressLog(context.log());
                 completed.setHabit(activity.getHabit());
-                completed.setCompletedAt(toOffsetDateTime(context.log().getDate(), faker.number().numberBetween(6, 22)));
+                completed
+                        .setCompletedAt(toOffsetDateTime(context.log().getDate(), faker.number().numberBetween(6, 22)));
                 completed.setNotes(truncate(faker.lorem().sentence(8), 200));
                 completedActivities.add(completed);
             }
@@ -433,8 +414,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (!completedActivities.isEmpty()) {
             List<List<CompletedActivity>> partitions = partition(
                     completedActivities,
-                    Math.max(1, Math.min(batchSize, completedActivities.size()))
-            );
+                    Math.max(1, Math.min(batchSize, completedActivities.size())));
             for (List<CompletedActivity> partition : partitions) {
                 completedActivityRepository.saveAll(partition);
             }
