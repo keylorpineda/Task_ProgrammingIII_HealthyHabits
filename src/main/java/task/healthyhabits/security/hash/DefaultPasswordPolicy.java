@@ -27,6 +27,5 @@ public class DefaultPasswordPolicy implements PasswordPolicy {
             throw new InvalidPasswordException("Debe incluir al menos un símbolo.");
         }*/
 
-        // Si se ocupa mas seguridad se puede agregar la de los simbolos
     }
 }

@@ -37,12 +37,34 @@ HealthyHabits centraliza el acompañamiento de rutinas, recordatorios y progreso
 - Política de contraseñas con mayúsculas, minúsculas, dígitos y longitud mínima, reforzada con un *pepper* configurable.
 - Matriz de permisos documentada en el [Apéndice B](#apéndice-b-matriz-de-permisos) para guiar auditorías.
 
-### Despliegue express en cinco pasos
-1. Clona el repositorio y copia `.env.example` como `.env`.
-2. Define `MARIADB_*`, `JWT_SECRET`, `PASSWORD_PEPPER` y credenciales del administrador.
-3. Ejecuta `docker compose up -d --build` para levantar MariaDB y la aplicación.
-4. Accede a `http://localhost:8080/graphiql` para probar queries con el esquema autodescriptivo.
-5. Supervisa con `docker compose logs -f app`.
+## Despliegue express con Docker, datos masivos y Postman
+1. Clona el repositorio y crea un archivo `.env` con las variables mínimas (`MARIADB_ROOT_PASSWORD`, `MARIADB_DATABASE`, `MARIADB_USER`, `MARIADB_PASSWORD`, `JWT_SECRET`, `PASSWORD_PEPPER`, `APP_ADMIN_PASSWORD`). Puedes agregar `APP_ADMIN_EMAIL` si deseas personalizar la cuenta administrativa.
+2. Construye las imágenes con `docker compose build` para garantizar que la aplicación utilice tu configuración local actual.
+3. Arranca los servicios con `docker compose up -d` y espera a que MariaDB se marque como `healthy` (verifícalo con `docker compose ps` o `docker compose logs -f mariadb`).
+4. Semilla la base con el dataset pesado (~500&nbsp;000 registros agregados entre usuarios, hábitos, rutinas y bitácoras) ejecutando `docker compose exec -T mariadb mariadb -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE" < docs/healthy_habits_seed.sql`. Ajusta los parámetros dentro del archivo SQL si necesitas un volumen distinto.
+5. La aplicación expondrá GraphQL en `http://localhost:8080/graphql` y GraphiQL en `http://localhost:8080/graphiql`. Verifica el estado con los logs.
+6. En Postman (o cualquier cliente HTTP) crea una petición `POST` a `http://localhost:8080/graphql`, selecciona el modo *GraphQL* y envía la mutación de inicio de sesión del administrador para obtener un token JWT:
+
+
+  mutation {
+  login(input: { email: "admin@healthyhabits.com", password: "AdminPsw123" }) {
+    token
+    expiresAt
+    user {
+      id
+      name
+      email
+      roles {
+        name
+        permission
+      }
+    }
+  }
+}
+
+
+   Copia el `token` de la respuesta y agrégalo como encabezado `Authorization: Bearer <token>` para el resto de mutaciones y consultas protegidas.
+7. Una vez autenticado podrás crear usuarios, hábitos, rutinas u operar con el dataset masivo tanto desde Postman como desde GraphiQL.
 
 ### Beneficios para cada perfil
 - **Equipo de producto**: ciclo corto de experimentación, datos masivos generables con el seeder y reportes de progreso.
@@ -248,9 +270,7 @@ HealthyHabits adopta un modelo de seguridad estricto basado en JWT y permisos po
    - Usa `register` para crear usuario inicial y prueba queries en GraphiQL.
 2. **Despliegue rápido**
    - Empaqueta con `./mvnw clean package`.
-   - Construye imagen con `docker build -t healthyhabits-app .` si prefieres no usar Compose.
-   - Define variables en el entorno objetivo.
-   - Ejecuta `docker run --env-file .env -p 8080:8080 healthyhabits-app`.
+   - Construye imagen con `docker compose build .` si prefieres no usar Compose.
 3. **Ciclo de desarrollo**
    - Agrega pruebas unitarias al extender resolvers o servicios.
    - Usa GraphiQL para validar entradas/salidas.
