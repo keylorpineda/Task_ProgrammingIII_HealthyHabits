@@ -42,7 +42,7 @@ HealthyHabits centraliza el acompañamiento de rutinas, recordatorios y progreso
 2. Define `MARIADB_*`, `JWT_SECRET`, `PASSWORD_PEPPER` y credenciales del administrador.
 3. Ejecuta `docker compose up -d --build` para levantar MariaDB y la aplicación.
 4. Accede a `http://localhost:8080/graphiql` para probar queries con el esquema autodescriptivo.
-5. Supervisa con `docker compose logs -f app` y `curl http://localhost:8080/actuator/health`.
+5. Supervisa con `docker compose logs -f app`.
 
 ### Beneficios para cada perfil
 - **Equipo de producto**: ciclo corto de experimentación, datos masivos generables con el seeder y reportes de progreso.
@@ -151,6 +151,20 @@ HealthyHabits adopta un modelo de seguridad estricto basado en JWT y permisos po
 - Acceso a una instancia MariaDB 10.11+ o similar.
 - Variables de entorno configuradas para JWT, base de datos y seeder.
 
+### Variables de entorno
+- Copia `.env.example` como `.env` para tener una plantilla local.
+- Ajusta cada valor según tu entorno antes de ejecutar Docker Compose o Maven.
+- Variables incluidas:
+  - `MARIADB_DATABASE`: nombre de la base de datos que usará la aplicación.
+  - `MARIADB_USER` / `MARIADB_PASSWORD`: credenciales de la cuenta de aplicación en MariaDB.
+  - `MARIADB_ROOT_PASSWORD`: contraseña del usuario `root` cuando usas el contenedor de MariaDB.
+  - `SPRING_JPA_HIBERNATE_DDL_AUTO` (opcional): estrategia de sincronización del esquema de Hibernate.
+  - `SPRING_JPA_SHOW_SQL` (opcional): habilita o deshabilita el log de sentencias SQL.
+  - `JWT_SECRET`: secreto en Base64 para firmar tokens JWT.
+  - `JWT_EXPIRATION_MS`: tiempo de expiración de los tokens JWT en milisegundos.
+  - `PASSWORD_PEPPER`: valor adicional que se mezcla antes de cifrar contraseñas.
+  - `APP_ADMIN_PASSWORD`: contraseña inicial del administrador autogenerado.
+
 ### Ejecución con Maven
 1. Asegura que MariaDB esté disponible en `localhost:3306` o actualiza `application.properties`.
 2. Exporta variables o carga `.env` en la sesión.
@@ -181,6 +195,24 @@ HealthyHabits adopta un modelo de seguridad estricto basado en JWT y permisos po
 - `spring.jpa.show-sql=false` por defecto para evitar ruido; habilítalo en entornos de depuración.
 - HikariCP se configura para no fallar en inicialización (`initialization-fail-timeout=-1`).
 - En Docker, los datos persisten en el volumen `mariadb_data`.
+
+### Carga del seed SQL desde Docker
+- En Windows (PowerShell) puedes hidratar la base de datos leyendo el archivo SQL y canalizándolo al contenedor:
+
+  ```powershell
+  Get-Content .\docs\healthy_habits_seed.sql | docker exec -i healthyhabits-db mariadb -uroot -p1234 healthyhabitsdb
+  ```
+
+  Este comando usa `Get-Content` para transmitir el `healthy_habits_seed.sql` al proceso `mariadb` que corre dentro del contenedor `healthyhabits-db`.
+
+- En macOS (incluido Apple Silicon/M1) el flujo es equivalente usando utilidades POSIX:
+
+  ```bash
+  cat docs/healthy_habits_seed.sql | docker exec -i healthyhabits-db mariadb -uroot -p1234 healthyhabitsdb
+  ```
+
+  Aquí `cat` imprime el archivo y `docker exec -i` redirige la entrada estándar al cliente `mariadb`, aplicando el seed con las mismas credenciales.
+
 
 ### Seeder masivo
 - Habilítalo con `APP_SEEDER_ENABLED=true`.
