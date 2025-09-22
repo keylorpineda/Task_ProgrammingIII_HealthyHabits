@@ -10,7 +10,7 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$${MARIADB_ROOT_PASSWORD} --silent"]
+      test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$${MARIADB_ROOT_PASSWORD} --silent" ]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -40,6 +40,10 @@ services:
       - SPRING_GRAPHQL_GRAPHIQL_PATH=/graphiql
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,mappings
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
+      - APP_SEEDER_ENABLED=false
+      - APP_SEEDER_TOTAL_RECORDS=500
+    volumes:
+      - ./logs:/app/logs
 
 volumes:
   mariadb_data:

@@ -3,13 +3,14 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn -q -DskipTests dependency:go-offline
 COPY src ./src
-RUN mvn -DskipTests package
+RUN mvn package
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 ENV TZ=America/Costa_Rica
 RUN useradd -ms /bin/bash appuser
+RUN mkdir -p /app/logs && chown appuser:appuser /app/logs
 USER appuser
 
 COPY --from=build /app/target/*.jar app.jar
