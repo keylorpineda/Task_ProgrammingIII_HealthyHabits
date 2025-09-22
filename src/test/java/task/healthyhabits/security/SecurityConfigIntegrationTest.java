@@ -14,10 +14,11 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import task.healthyhabits.config.GraphQlConfig;
 import task.healthyhabits.security.JWT.JwtAuthFilter;
 
 @SpringBootTest(
-        classes = { SecurityConfig.class },
+        classes = { SecurityConfig.class, GraphQlConfig.class },
         properties = {
                 "security.jwt.secret=QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo0MzIxMjM=",
                 "security.jwt.expiration-ms=3600000",

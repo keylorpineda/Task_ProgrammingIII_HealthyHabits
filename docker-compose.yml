@@ -40,7 +40,7 @@ services:
       - SPRING_GRAPHQL_GRAPHIQL_PATH=/graphiql
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,mappings
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
-      - APP_SEEDER_ENABLED=false
+      - APP_SEEDER_ENABLED=true
       - APP_SEEDER_TOTAL_RECORDS=500
     volumes:
       - ./logs:/app/logs

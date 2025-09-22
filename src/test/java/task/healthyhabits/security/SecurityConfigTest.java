@@ -113,8 +113,8 @@ class SecurityConfigTest {
     @Test
     void corsConfigurationSourceAllowsConfiguredValues() {
         CorsConfigurationSource source = securityConfig.corsConfigurationSource();
-        org.springframework.mock.web.MockHttpServletRequest request =
-                new org.springframework.mock.web.MockHttpServletRequest(HttpMethod.GET.name(), "/any");
+        org.springframework.mock.web.MockHttpServletRequest request = new org.springframework.mock.web.MockHttpServletRequest(
+                HttpMethod.GET.name(), "/any");
 
         CorsConfiguration configuration = source.getCorsConfiguration(request);
         assertThat(configuration).isNotNull();
@@ -141,8 +141,17 @@ class SecurityConfigTest {
         sharedObjects.put(AuthenticationManagerBuilder.class, authBuilder);
 
         StaticApplicationContext sac = new StaticApplicationContext();
+        sac.getBeanFactory().registerSingleton(
+                "corsConfigurationSource", securityConfig.corsConfigurationSource());
         sharedObjects.put(ApplicationContext.class, sac);
 
-        return new HttpSecurity(opp, authBuilder, sharedObjects);
+         HttpSecurity http = new HttpSecurity(opp, authBuilder, sharedObjects);
+
+        UsernamePasswordAuthenticationFilter usernamePasswordAuthenticationFilter =
+                new UsernamePasswordAuthenticationFilter();
+        usernamePasswordAuthenticationFilter.setAuthenticationManager(authenticationManager);
+        http.addFilter(usernamePasswordAuthenticationFilter);
+
+        return http;
     }
 }
