@@ -39,7 +39,7 @@ public class SecurityConfig {
         if (applicationContext == null) {
             StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
             staticApplicationContext.registerSingleton(
-                HandlerMappingIntrospector.BEAN_NAME,
+                HandlerMappingIntrospector.MVC_HANDLER_MAPPING_INTROSPECTOR_BEAN_NAME,
                 HandlerMappingIntrospector.class
             );
             staticApplicationContext.refresh();
