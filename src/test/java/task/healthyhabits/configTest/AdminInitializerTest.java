@@ -77,6 +77,7 @@ class AdminInitializerTest {
 
     @Test
     void runCreatesAdminWhenMissing() {
+        when(environment.getProperty("app.admin.password")).thenReturn(rawPassword);
         Role role = new Role();
         role.setName("MANAGER");
         List<Role> roles = List.of(role);
@@ -117,7 +118,6 @@ class AdminInitializerTest {
     @Test
     void runSeedsAdminUsingPropertyWhenEnvMissing() {
         when(environment.getProperty("app.admin.password")).thenReturn(rawPassword);
-        when(environment.getProperty("APP_ADMIN_PASSWORD")).thenReturn("");
 
         Role role = new Role();
         List<Role> roles = List.of(role);
