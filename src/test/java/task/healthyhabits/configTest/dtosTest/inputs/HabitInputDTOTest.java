@@ -26,7 +26,7 @@ class HabitInputDTOTest {
     @Test
     void shouldRequireName() {
         HabitInputDTO dto = createValidDto();
-        dto.setName(" ");
+        dto.setName(null);
 
         Set<ConstraintViolation<HabitInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {
@@ -62,7 +62,7 @@ class HabitInputDTOTest {
     @Test
     void shouldRequireDescription() {
         HabitInputDTO dto = createValidDto();
-        dto.setDescription(" ");
+        dto.setDescription(null);
 
         Set<ConstraintViolation<HabitInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {

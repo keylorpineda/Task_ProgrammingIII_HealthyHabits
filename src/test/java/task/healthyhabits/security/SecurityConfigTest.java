@@ -14,8 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.http.HttpMethod;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -33,9 +34,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import task.healthyhabits.security.JWT.JwtAuthFilter;
 
-
 @ExtendWith(MockitoExtension.class)
-
 class SecurityConfigTest {
 
     @Mock
@@ -58,7 +57,6 @@ class SecurityConfigTest {
     @BeforeEach
     void setUp() throws Exception {
         securityConfig = new SecurityConfig(jwtAuthFilter, authenticationEntryPoint, accessDeniedHandler);
-        when(authenticationConfiguration.getAuthenticationManager()).thenReturn(authenticationManager);
     }
 
     @Test
@@ -82,7 +80,7 @@ class SecurityConfigTest {
 
         assertThat(usernameIndex).isGreaterThanOrEqualTo(0);
         assertThat(jwtIndex).isLessThan(usernameIndex);
-       
+
         SessionManagementFilter sessionManagementFilter = filters.stream()
                 .filter(SessionManagementFilter.class::isInstance)
                 .map(SessionManagementFilter.class::cast)
@@ -106,8 +104,8 @@ class SecurityConfigTest {
 
     @Test
     void authenticationManagerDelegatesToConfiguration() throws Exception {
+        when(authenticationConfiguration.getAuthenticationManager()).thenReturn(authenticationManager);
         AuthenticationManager manager = securityConfig.authenticationManager(authenticationConfiguration);
-
         assertThat(manager).isSameAs(authenticationManager);
         verify(authenticationConfiguration, times(1)).getAuthenticationManager();
     }
@@ -115,7 +113,8 @@ class SecurityConfigTest {
     @Test
     void corsConfigurationSourceAllowsConfiguredValues() {
         CorsConfigurationSource source = securityConfig.corsConfigurationSource();
-        MockHttpServletRequest request = new MockHttpServletRequest(HttpMethod.GET.name(), "/any");
+        org.springframework.mock.web.MockHttpServletRequest request =
+                new org.springframework.mock.web.MockHttpServletRequest(HttpMethod.GET.name(), "/any");
 
         CorsConfiguration configuration = source.getCorsConfiguration(request);
         assertThat(configuration).isNotNull();
@@ -136,9 +135,14 @@ class SecurityConfigTest {
         };
         AuthenticationManagerBuilder authBuilder = new AuthenticationManagerBuilder(opp);
         authBuilder.parentAuthenticationManager(authenticationManager);
+
         Map<Class<?>, Object> sharedObjects = new HashMap<>();
         sharedObjects.put(AuthenticationManager.class, authenticationManager);
         sharedObjects.put(AuthenticationManagerBuilder.class, authBuilder);
+
+        StaticApplicationContext sac = new StaticApplicationContext();
+        sharedObjects.put(ApplicationContext.class, sac);
+
         return new HttpSecurity(opp, authBuilder, sharedObjects);
     }
 }

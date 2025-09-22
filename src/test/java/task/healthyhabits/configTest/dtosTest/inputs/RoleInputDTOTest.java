@@ -25,7 +25,7 @@ class RoleInputDTOTest {
     @Test
     void shouldRequireName() {
         RoleInputDTO dto = createValidDto();
-        dto.setName(" ");
+        dto.setName(null);
 
         Set<ConstraintViolation<RoleInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {

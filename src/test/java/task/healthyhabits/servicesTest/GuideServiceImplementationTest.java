@@ -166,13 +166,15 @@ class GuideServiceImplementationTest {
 
     @Test
     void update_appliesChangesAndSaves() {
-        GuideInputDTO input = new GuideInputDTO("new", "body", Category.MINDFULNESS, "goal", List.of());
+        Habit recommended = new Habit();
+        recommended.setId(7L);
+        GuideInputDTO input = new GuideInputDTO("new", "body", Category.MINDFULNESS, "goal", List.of(7L));
         guide.setTitle("old");
         guide.setContent("old");
         guide.setCategory(Category.FITNESS);
         guide.setObjective("old");
         when(guideRepository.findById(1L)).thenReturn(Optional.of(guide));
-        when(habitRepository.findAllById(List.of())).thenReturn(List.of());
+        when(habitRepository.findAllById(List.of(7L))).thenReturn(List.of(recommended));
         when(guideRepository.save(guide)).thenReturn(guide);
         when(ioMapper.convertToOutput(guide)).thenReturn(guideOutput);
 
@@ -183,7 +185,7 @@ class GuideServiceImplementationTest {
         assertEquals("body", guide.getContent());
         assertEquals(Category.MINDFULNESS, guide.getCategory());
         assertEquals("goal", guide.getObjective());
-        assertNotNull(guide.getRecommendedFor());
+        assertEquals(List.of(recommended), guide.getRecommendedFor());
         verify(guideRepository).save(guide);
     }
 

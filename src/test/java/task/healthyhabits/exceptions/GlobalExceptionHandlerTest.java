@@ -2,8 +2,8 @@ package task.healthyhabits.exceptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import graphql.GraphQLError;
+import graphql.execution.ExecutionStepInfo;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.DataFetchingEnvironmentImpl;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
@@ -25,7 +25,13 @@ import task.healthyhabits.exceptions.GlobalExceptionHandler;
 class GlobalExceptionHandlerTest {
 
     private final TestableGlobalExceptionHandler handler = new TestableGlobalExceptionHandler();
-    private final DataFetchingEnvironment environment = DataFetchingEnvironmentImpl.newDataFetchingEnvironment().build();
+    private final DataFetchingEnvironment environment = org.mockito.Mockito.mock(DataFetchingEnvironment.class);
+    private final ExecutionStepInfo executionStepInfo = org.mockito.Mockito.mock(ExecutionStepInfo.class);
+
+    GlobalExceptionHandlerTest() {
+        org.mockito.Mockito.when(environment.getExecutionStepInfo()).thenReturn(executionStepInfo);
+        org.mockito.Mockito.when(executionStepInfo.getFieldDefinition()).thenReturn(null);
+    }
 
     @Test
     void handlesBusinessExceptionWithHint() {

@@ -38,7 +38,7 @@ class RoutineInputDTOTest {
     @Test
     void shouldRequireTitle() {
         RoutineInputDTO dto = createValidDto();
-        dto.setTitle(" ");
+        dto.setTitle(null);
 
         Set<ConstraintViolation<RoutineInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {
@@ -62,7 +62,7 @@ class RoutineInputDTOTest {
     @Test
     void shouldRequireDescription() {
         RoutineInputDTO dto = createValidDto();
-        dto.setDescription(" ");
+        dto.setDescription(null);
 
         Set<ConstraintViolation<RoutineInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {

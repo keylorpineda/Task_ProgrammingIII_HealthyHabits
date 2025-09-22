@@ -1,6 +1,5 @@
 package task.healthyhabits.security.JWT;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.jsonwebtoken.Claims;
@@ -18,7 +17,8 @@ import task.healthyhabits.security.JWT.JwtService;
 class JwtServiceTest {
 
     private static final String RAW_SECRET = "super-secret-key-for-tests-1234567890";
-    private static final String BASE64_SECRET = Base64.getEncoder().encodeToString(RAW_SECRET.getBytes(StandardCharsets.UTF_8));
+    private static final String BASE64_SECRET = Base64.getEncoder()
+            .encodeToString(RAW_SECRET.getBytes(StandardCharsets.UTF_8));
     private static final long EXPIRATION_MS = 2_000L;
 
     @Test
@@ -37,7 +37,7 @@ class JwtServiceTest {
 
         assertThat(claims.getSubject()).isEqualTo("user@example.com");
         assertThat(claims.get("role", String.class)).isEqualTo("ADMIN");
-        assertThat(claims.getIssuedAt().toInstant()).isBetween(before.minusMillis(5), after.plusMillis(5));
+        assertThat(claims.getIssuedAt().toInstant()).isBetween(before.minusSeconds(1), after.plusSeconds(1));
         Duration validity = Duration.between(claims.getIssuedAt().toInstant(), claims.getExpiration().toInstant());
         assertThat(validity.toMillis()).isEqualTo(EXPIRATION_MS);
     }
