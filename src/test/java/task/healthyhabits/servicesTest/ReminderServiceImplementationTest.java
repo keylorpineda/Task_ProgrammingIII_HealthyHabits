@@ -63,8 +63,8 @@ class ReminderServiceImplementationTest {
         reminderDTO = new ReminderDTO();
         reminderDTO.setId(5L);
         outputDTO = new ReminderOutputDTO();
-        when(mapperFactory.createMapper(Reminder.class, ReminderDTO.class)).thenReturn(reminderMapper);
-        when(mapperFactory.createInputOutputMapper(ReminderInputDTO.class, Reminder.class, ReminderOutputDTO.class))
+        lenient().when(mapperFactory.createMapper(Reminder.class, ReminderDTO.class)).thenReturn(reminderMapper);
+        lenient().when(mapperFactory.createInputOutputMapper(ReminderInputDTO.class, Reminder.class, ReminderOutputDTO.class))
                 .thenReturn(ioMapper);
     }
 

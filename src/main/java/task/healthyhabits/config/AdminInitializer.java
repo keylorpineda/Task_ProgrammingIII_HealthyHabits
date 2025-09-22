@@ -17,6 +17,7 @@ import task.healthyhabits.repositories.UserRepository;
 import task.healthyhabits.security.hash.PasswordHashService;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.helpers.MessageFormatter;
 
 @Component
 @RequiredArgsConstructor
@@ -40,7 +41,7 @@ public class AdminInitializer implements CommandLineRunner {
         String envPassword = environment.getProperty(ADMIN_PASSWORD_ENV);
 
         if (!StringUtils.hasText(envPassword)) {
-            LOGGER.warn(
+            logSkipWarning(
                     "Administrator account seeding skipped: environment variable {} is not defined or blank. "
                             + "Provide matching values for property 'app.admin.password' and environment variable {} "
                             + "to seed the administrator account.",
@@ -49,7 +50,7 @@ public class AdminInitializer implements CommandLineRunner {
         }
 
         if (!StringUtils.hasText(adminPassword)) {
-            LOGGER.warn(
+            logSkipWarning(
                     "Administrator account seeding skipped: property 'app.admin.password' is not defined or blank. "
                             + "Provide matching values for property 'app.admin.password' and environment variable {} "
                             + "to seed the administrator account.",
@@ -58,7 +59,7 @@ public class AdminInitializer implements CommandLineRunner {
         }
 
         if (!envPassword.equals(adminPassword)) {
-            LOGGER.warn(
+            logSkipWarning(
                     "Administrator account seeding skipped: property 'app.admin.password' does not match environment "
                             + "variable {}. Ensure both are configured with the same secure password to seed the "
                             + "administrator account.",
@@ -85,5 +86,10 @@ public class AdminInitializer implements CommandLineRunner {
                 });
 
         userRepository.save(admin);
+    }
+
+    private void logSkipWarning(String message, Object... args) {
+        LOGGER.warn(message, args);
+        System.out.println(MessageFormatter.arrayFormat(message, args).getMessage());
     }
 }

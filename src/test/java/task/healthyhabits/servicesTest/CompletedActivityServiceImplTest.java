@@ -1,4 +1,5 @@
 package task.healthyhabits.servicesTest;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,9 +62,9 @@ class CompletedActivityServiceImplTest {
         completedActivityDTO = new CompletedActivityDTO();
         completedActivityDTO.setId(10L);
         outputDTO = new CompletedActivityOutputDTO();
-        when(mapperFactory.createMapper(CompletedActivity.class, CompletedActivityDTO.class))
+        lenient().when(mapperFactory.createMapper(CompletedActivity.class, CompletedActivityDTO.class))
                 .thenReturn(completedActivityMapper);
-        when(mapperFactory.createInputOutputMapper(CompletedActivityInputDTO.class, CompletedActivity.class,
+        lenient().when(mapperFactory.createInputOutputMapper(CompletedActivityInputDTO.class, CompletedActivity.class,
                 CompletedActivityOutputDTO.class)).thenReturn(ioMapper);
     }
 

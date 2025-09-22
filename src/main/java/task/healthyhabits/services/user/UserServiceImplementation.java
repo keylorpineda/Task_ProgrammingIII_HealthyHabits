@@ -5,8 +5,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import task.healthyhabits.dtos.inputs.HabitInputDTO;
@@ -47,11 +48,31 @@ public class UserServiceImplementation implements UserService {
     @Transactional(readOnly = true)
     public UserDTO getAuthenticatedUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+         if (auth == null) {
             logger.warn("Missing authentication when fetching current user");
             throw new NoSuchElementException("Missing authentication");
         }
-        String email = auth.getName();
+        Object principal = auth.getPrincipal();
+        String email = null;
+        if (principal instanceof UserDetails userDetails) {
+            email = userDetails.getUsername();
+        } else if (principal instanceof String principalName) {
+            email = principalName;
+        } else if (principal != null) {
+            email = principal.toString();
+        }
+
+        if (email == null || email.isBlank() || "anonymousUser".equalsIgnoreCase(email)) {
+            String name = auth.getName();
+            if (name != null && !name.isBlank() && !"anonymousUser".equalsIgnoreCase(name)) {
+                email = name;
+            }
+        }
+
+        if (email == null || email.isBlank() || "anonymousUser".equalsIgnoreCase(email)) {
+            logger.warn("Missing authentication when fetching current user");
+            throw new NoSuchElementException("Missing authentication");
+        }
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     logger.warn("User not found for authentication subject {}", email);

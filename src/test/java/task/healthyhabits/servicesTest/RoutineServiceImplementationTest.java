@@ -68,8 +68,8 @@ class RoutineServiceImplementationTest {
         routineDTO = new RoutineDTO();
         routineDTO.setId(6L);
         outputDTO = new RoutineOutputDTO();
-        when(mapperFactory.createMapper(Routine.class, RoutineDTO.class)).thenReturn(routineMapper);
-        when(mapperFactory.createInputOutputMapper(RoutineInputDTO.class, Routine.class, RoutineOutputDTO.class))
+        lenient().when(mapperFactory.createMapper(Routine.class, RoutineDTO.class)).thenReturn(routineMapper);
+        lenient().when(mapperFactory.createInputOutputMapper(RoutineInputDTO.class, Routine.class, RoutineOutputDTO.class))
                 .thenReturn(ioMapper);
     }
 

@@ -53,8 +53,8 @@ class HabitServiceImplementationTest {
         habitDTO = new HabitDTO();
         habitDTO.setId(1L);
         outputDTO = new HabitOutputDTO();
-        when(mapperFactory.createMapper(Habit.class, HabitDTO.class)).thenReturn(habitMapper);
-        when(mapperFactory.createInputOutputMapper(HabitInputDTO.class, Habit.class, HabitOutputDTO.class))
+        lenient().when(mapperFactory.createMapper(Habit.class, HabitDTO.class)).thenReturn(habitMapper);
+        lenient().when(mapperFactory.createInputOutputMapper(HabitInputDTO.class, Habit.class, HabitOutputDTO.class))
                 .thenReturn(ioMapper);
     }
 

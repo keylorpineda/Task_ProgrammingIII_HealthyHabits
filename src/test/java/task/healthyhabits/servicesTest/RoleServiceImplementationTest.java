@@ -54,8 +54,8 @@ class RoleServiceImplementationTest {
         roleDTO = new RoleDTO();
         roleDTO.setId(4L);
         outputDTO = new RoleOutputDTO();
-        when(mapperFactory.createMapper(Role.class, RoleDTO.class)).thenReturn(roleMapper);
-        when(mapperFactory.createInputOutputMapper(RoleInputDTO.class, Role.class, RoleOutputDTO.class))
+        lenient().when(mapperFactory.createMapper(Role.class, RoleDTO.class)).thenReturn(roleMapper);
+        lenient().when(mapperFactory.createInputOutputMapper(RoleInputDTO.class, Role.class, RoleOutputDTO.class))
                 .thenReturn(ioMapper);
     }
 

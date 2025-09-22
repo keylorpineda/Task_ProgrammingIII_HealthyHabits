@@ -60,8 +60,8 @@ class RoutineActivityServiceImplementationTest {
         activityDTO = new RoutineActivityDTO();
         activityDTO.setId(3L);
         outputDTO = new RoutineActivityOutputDTO();
-        when(mapperFactory.createMapper(RoutineActivity.class, RoutineActivityDTO.class)).thenReturn(activityMapper);
-        when(mapperFactory.createInputOutputMapper(RoutineActivityInputDTO.class, RoutineActivity.class,
+        lenient().when(mapperFactory.createMapper(RoutineActivity.class, RoutineActivityDTO.class)).thenReturn(activityMapper);
+        lenient().when(mapperFactory.createInputOutputMapper(RoutineActivityInputDTO.class, RoutineActivity.class,
                 RoutineActivityOutputDTO.class)).thenReturn(ioMapper);
     }
 
