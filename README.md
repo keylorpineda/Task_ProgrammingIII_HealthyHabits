@@ -46,20 +46,21 @@ HealthyHabits centraliza el acompañamiento de rutinas, recordatorios y progreso
 6. En Postman (o cualquier cliente HTTP) crea una petición `POST` a `http://localhost:8080/graphql`, selecciona el modo *GraphQL* y envía la mutación de inicio de sesión del administrador para obtener un token JWT:
 
 
-   mutation Login($input: LoginInput!) {
-     login(input: $input) {
-       token
-       expiresAt
-       user { id email roles { name } }
-     }
-   }
- 
-   {
-     "input": {
-       "email": "admin@healthyhabits.com",
-       "password": "<APP_ADMIN_PASSWORD configurado en .env>"
-     }
-   }
+  mutation {
+  login(input: { email: "admin@healthyhabits.com", password: "AdminPsw123" }) {
+    token
+    expiresAt
+    user {
+      id
+      name
+      email
+      roles {
+        name
+        permission
+      }
+    }
+  }
+}
 
 
    Copia el `token` de la respuesta y agrégalo como encabezado `Authorization: Bearer <token>` para el resto de mutaciones y consultas protegidas.
