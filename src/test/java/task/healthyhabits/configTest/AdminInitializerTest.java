@@ -53,12 +53,11 @@ class AdminInitializerTest {
     @BeforeEach
     void configureProperties() {
         ReflectionTestUtils.setField(initializer, "adminEmail", adminEmail);
-        when(environment.getProperty("app.admin.password")).thenReturn(rawPassword);
-        when(environment.getProperty("APP_ADMIN_PASSWORD")).thenReturn(rawPassword);
     }
 
     @Test
     void runUpdatesExistingAdminWithNewPasswordAndRoles() {
+        when(environment.getProperty("app.admin.password")).thenReturn(rawPassword);
         Role role = new Role();
         List<Role> roles = List.of(role);
         User existing = new User();
@@ -102,6 +101,7 @@ class AdminInitializerTest {
     @Test
     void runLogsWarningAndSkipsWhenPasswordMissing(CapturedOutput output) {
         when(environment.getProperty("app.admin.password")).thenReturn("");
+
         when(environment.getProperty("APP_ADMIN_PASSWORD")).thenReturn(null);
 
         initializer.run();
@@ -110,6 +110,43 @@ class AdminInitializerTest {
 
         assertThat(output.getOut())
                 .contains("Administrator account seeding skipped")
+                .contains("app.admin.password")
                 .contains("APP_ADMIN_PASSWORD");
+    }
+
+    @Test
+    void runSeedsAdminUsingPropertyWhenEnvMissing() {
+        when(environment.getProperty("app.admin.password")).thenReturn(rawPassword);
+        when(environment.getProperty("APP_ADMIN_PASSWORD")).thenReturn("");
+
+        Role role = new Role();
+        List<Role> roles = List.of(role);
+
+        when(roleRepository.findAll()).thenReturn(roles);
+        when(passwordHashService.encode(rawPassword)).thenReturn(encodedPassword);
+        when(userRepository.findByEmail(adminEmail)).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        initializer.run();
+
+        ArgumentCaptor<User> savedUser = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(savedUser.capture());
+        User admin = savedUser.getValue();
+        assertThat(admin.getPassword()).isEqualTo(encodedPassword);
+    }
+
+    @Test
+    void runSeedsAdminUsingEnvironmentWhenPropertyMissing() {
+        when(environment.getProperty("app.admin.password")).thenReturn(null);
+        when(environment.getProperty("APP_ADMIN_PASSWORD")).thenReturn(rawPassword);
+
+        when(roleRepository.findAll()).thenReturn(List.of());
+        when(passwordHashService.encode(rawPassword)).thenReturn(encodedPassword);
+        when(userRepository.findByEmail(adminEmail)).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        initializer.run();
+
+        verify(passwordHashService).encode(rawPassword);
     }
 }

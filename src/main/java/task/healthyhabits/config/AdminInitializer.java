@@ -38,31 +38,16 @@ public class AdminInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         String adminPassword = environment.getProperty("app.admin.password");
-        String envPassword = environment.getProperty(ADMIN_PASSWORD_ENV);
+        
 
-        if (!StringUtils.hasText(envPassword)) {
-            logSkipWarning(
-                    "Administrator account seeding skipped: environment variable {} is not defined or blank. "
-                            + "Provide matching values for property 'app.admin.password' and environment variable {} "
-                            + "to seed the administrator account.",
-                    ADMIN_PASSWORD_ENV, ADMIN_PASSWORD_ENV);
-            return;
+        if (!StringUtils.hasText(adminPassword)) {
+            adminPassword = environment.getProperty(ADMIN_PASSWORD_ENV);
         }
 
         if (!StringUtils.hasText(adminPassword)) {
             logSkipWarning(
-                    "Administrator account seeding skipped: property 'app.admin.password' is not defined or blank. "
-                            + "Provide matching values for property 'app.admin.password' and environment variable {} "
-                            + "to seed the administrator account.",
-                    ADMIN_PASSWORD_ENV);
-            return;
-        }
-
-        if (!envPassword.equals(adminPassword)) {
-            logSkipWarning(
-                    "Administrator account seeding skipped: property 'app.admin.password' does not match environment "
-                            + "variable {}. Ensure both are configured with the same secure password to seed the "
-                            + "administrator account.",
+                   "Administrator account seeding skipped: no admin password configured. Set property "
+                            + "'app.admin.password' or environment variable {} to seed the administrator account.",
                     ADMIN_PASSWORD_ENV);
             return;
         }
