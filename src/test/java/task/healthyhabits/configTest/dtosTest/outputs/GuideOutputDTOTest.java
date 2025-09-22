@@ -1,4 +1,4 @@
-package task.healthyhabits.dtosTest.outputs;
+package task.healthyhabits.configTest.dtosTest.outputs;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import task.healthyhabits.dtos.outputs.GuideOutputDTO;

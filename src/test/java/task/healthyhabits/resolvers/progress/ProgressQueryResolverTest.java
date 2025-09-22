@@ -1,4 +1,4 @@
-package task.healthyhabits.tests.resolvers.progress;
+package task.healthyhabits.resolvers.progress;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;

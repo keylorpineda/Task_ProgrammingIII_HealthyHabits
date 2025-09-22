@@ -1,4 +1,4 @@
-package task.healthyhabits.dtosTest.pageDto;
+package task.healthyhabits.configTest.dtosTest.pageDto;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,5 @@
-package task.healthyhabits.dtosTest.outputs;
+package task.healthyhabits.configTest.dtosTest.outputs;
+
 import java.time.LocalTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
