@@ -7,6 +7,11 @@
 ## Resumen ejecutivo
 HealthyHabits centraliza el acompañamiento de rutinas, recordatorios y progreso de usuarios enfocados en mejorar su bienestar. La aplicación está construida con Spring Boot 3.5.4, Java 21 y MariaDB, exponiendo un esquema GraphQL integral que reduce acoplamientos frente a clientes web o móviles. La capa de seguridad aplica JWT firmados con HS256, políticas estrictas de contraseñas y verificación de permisos atómicos antes de ejecutar cualquier resolver.
 
+## Diagrama de la Base de datos: 
+
+![Diagrama de base de datos](docs/db-diagram.png)
+
+
 ### Propósito y valor inmediato
 - Consolidar en un solo backend el seguimiento de hábitos, rutinas personalizadas, guías educativas y bitácoras de progreso.
 - Ofrecer a coaches, estudiantes y auditores un punto de acceso seguro y trazable con control de roles granular.
