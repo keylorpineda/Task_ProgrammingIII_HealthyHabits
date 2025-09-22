@@ -1,4 +1,5 @@
-package task.healthyhabits.dtosTest.outputs;
+package task.healthyhabits.configTest.dtosTest.outputs;
+
 import org.junit.jupiter.api.Test;
 import task.healthyhabits.dtos.outputs.RoleOutputDTO;
 import task.healthyhabits.models.Permission;

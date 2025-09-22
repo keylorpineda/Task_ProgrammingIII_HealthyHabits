@@ -1,4 +1,4 @@
-package task.healthyhabits.dtosTest.outputs;
+package task.healthyhabits.configTest.dtosTest.outputs;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;

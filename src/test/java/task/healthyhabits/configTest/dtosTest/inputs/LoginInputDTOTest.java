@@ -1,4 +1,4 @@
-package task.healthyhabits.dtosTest.inputs;
+package task.healthyhabits.configTest.dtosTest.inputs;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;

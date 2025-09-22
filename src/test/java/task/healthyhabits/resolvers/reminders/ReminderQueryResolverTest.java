@@ -1,4 +1,4 @@
-package task.healthyhabits.tests.resolvers.reminders;
+package task.healthyhabits.resolvers.reminders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

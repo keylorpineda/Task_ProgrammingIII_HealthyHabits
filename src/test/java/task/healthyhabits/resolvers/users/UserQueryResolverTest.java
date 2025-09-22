@@ -1,4 +1,4 @@
-package task.healthyhabits.tests.resolvers.users;
+package task.healthyhabits.resolvers.users;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

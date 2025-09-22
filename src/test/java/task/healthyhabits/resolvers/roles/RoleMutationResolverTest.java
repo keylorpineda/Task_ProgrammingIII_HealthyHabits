@@ -1,4 +1,4 @@
-package task.healthyhabits.tests.resolvers.roles;
+package task.healthyhabits.resolvers.roles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;
