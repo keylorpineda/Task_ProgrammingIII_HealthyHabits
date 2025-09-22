@@ -1,10 +1,8 @@
 package task.healthyhabits.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -19,7 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import task.healthyhabits.security.JWT.JwtAuthFilter;
 
 import java.util.List;
@@ -35,17 +32,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        ApplicationContext applicationContext = http.getSharedObject(ApplicationContext.class);
-        if (applicationContext == null) {
-            StaticApplicationContext staticApplicationContext = new StaticApplicationContext();
-            staticApplicationContext.registerSingleton(
-                HandlerMappingIntrospector.MVC_HANDLER_MAPPING_INTROSPECTOR_BEAN_NAME,
-                HandlerMappingIntrospector.class
-            );
-            staticApplicationContext.refresh();
-            http.setSharedObject(ApplicationContext.class, staticApplicationContext);
-        }
-
         http
             .cors(c -> {})
             .csrf(AbstractHttpConfigurer::disable)

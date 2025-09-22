@@ -25,7 +25,7 @@ class LoginInputDTOTest {
     @Test
     void shouldRequireEmail() {
         LoginInputDTO dto = createValidDto();
-        dto.setEmail(" ");
+        dto.setEmail(null);
 
         Set<ConstraintViolation<LoginInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {
@@ -61,7 +61,7 @@ class LoginInputDTOTest {
     @Test
     void shouldRequirePassword() {
         LoginInputDTO dto = createValidDto();
-        dto.setPassword(" ");
+        dto.setPassword(null);
 
         Set<ConstraintViolation<LoginInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {

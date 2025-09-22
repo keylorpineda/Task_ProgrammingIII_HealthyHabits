@@ -73,10 +73,11 @@ public class UserServiceImplementation implements UserService {
             logger.warn("Missing authentication when fetching current user");
             throw new NoSuchElementException("Missing authentication");
         }
-        User user = userRepository.findByEmail(email)
+        final String resolvedEmail = email;
+        User user = userRepository.findByEmail(resolvedEmail)
                 .orElseThrow(() -> {
-                    logger.warn("User not found for authentication subject {}", email);
-                    return new NoSuchElementException("User not found for authentication subject");
+                    logger.warn("User not found for authentication subject {}", resolvedEmail);
+                    return new NoSuchElementException("User not found for authentication subject " + resolvedEmail);
                 });
         return mapperFactory.createMapper(User.class, UserDTO.class).convertToDTO(user);
     }

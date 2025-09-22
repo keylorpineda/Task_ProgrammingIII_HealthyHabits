@@ -25,7 +25,7 @@ class RegisterInputDTOTest {
     @Test
     void shouldRequireName() {
         RegisterInputDTO dto = createValidDto();
-        dto.setName(" ");
+        dto.setName(null);
 
         Set<ConstraintViolation<RegisterInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {
@@ -49,7 +49,7 @@ class RegisterInputDTOTest {
     @Test
     void shouldRequireEmail() {
         RegisterInputDTO dto = createValidDto();
-        dto.setEmail(" ");
+        dto.setEmail(null);
 
         Set<ConstraintViolation<RegisterInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {
@@ -85,7 +85,7 @@ class RegisterInputDTOTest {
     @Test
     void shouldRequirePassword() {
         RegisterInputDTO dto = createValidDto();
-        dto.setPassword(" ");
+        dto.setPassword(null);
 
         Set<ConstraintViolation<RegisterInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {

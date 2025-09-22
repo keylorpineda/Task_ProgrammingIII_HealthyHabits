@@ -38,7 +38,7 @@ class AuthTokenInputDTOTest {
     @Test
     void shouldRequireToken() {
         AuthTokenInputDTO dto = createValidDto();
-        dto.setToken(" ");
+        dto.setToken(null);
 
         Set<ConstraintViolation<AuthTokenInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {

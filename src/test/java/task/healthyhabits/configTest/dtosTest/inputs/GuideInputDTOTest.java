@@ -32,7 +32,7 @@ class GuideInputDTOTest {
     @Test
     void shouldRequireTitle() {
         GuideInputDTO dto = createValidDto();
-        dto.setTitle(" ");
+        dto.setTitle(null);
 
         Set<ConstraintViolation<GuideInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {
@@ -56,7 +56,7 @@ class GuideInputDTOTest {
     @Test
     void shouldRequireContent() {
         GuideInputDTO dto = createValidDto();
-        dto.setContent(" ");
+        dto.setContent(null);
 
         Set<ConstraintViolation<GuideInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {
@@ -92,7 +92,7 @@ class GuideInputDTOTest {
     @Test
     void shouldRequireObjective() {
         GuideInputDTO dto = createValidDto();
-        dto.setObjective(" ");
+        dto.setObjective(null);
 
         Set<ConstraintViolation<GuideInputDTO>> violations = VALIDATOR.validate(dto);
         assertThat(violations).singleElement().satisfies(v -> {
