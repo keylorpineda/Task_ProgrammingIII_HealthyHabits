@@ -73,8 +73,8 @@ class ProgressLogServiceImplementationTest {
         progressLogDTO = new ProgressLogDTO();
         progressLogDTO.setId(9L);
         outputDTO = new ProgressLogOutputDTO();
-        when(mapperFactory.createMapper(ProgressLog.class, ProgressLogDTO.class)).thenReturn(progressLogMapper);
-        when(mapperFactory.createInputOutputMapper(ProgressLogInputDTO.class, ProgressLog.class, ProgressLogOutputDTO.class))
+        lenient().when(mapperFactory.createMapper(ProgressLog.class, ProgressLogDTO.class)).thenReturn(progressLogMapper);
+        lenient().when(mapperFactory.createInputOutputMapper(ProgressLogInputDTO.class, ProgressLog.class, ProgressLogOutputDTO.class))
                 .thenReturn(ioMapper);
     }
 

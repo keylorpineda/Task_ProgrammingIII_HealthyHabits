@@ -75,9 +75,9 @@ class UserServiceImplementationTest {
         userDTO = new UserDTO();
         userDTO.setId(10L);
         outputDTO = new UserOutputDTO();
-        when(mapperFactory.createMapper(User.class, UserDTO.class)).thenReturn(userMapper);
-        when(mapperFactory.createMapper(Habit.class, HabitDTO.class)).thenReturn(habitMapper);
-        when(mapperFactory.createInputOutputMapper(UserInputDTO.class, User.class, UserOutputDTO.class))
+        lenient().when(mapperFactory.createMapper(User.class, UserDTO.class)).thenReturn(userMapper);
+        lenient().when(mapperFactory.createMapper(Habit.class, HabitDTO.class)).thenReturn(habitMapper);
+        lenient().when(mapperFactory.createInputOutputMapper(UserInputDTO.class, User.class, UserOutputDTO.class))
                 .thenReturn(ioMapper);
     }
 

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import task.healthyhabits.models.Category;
 import task.healthyhabits.repositories.CompletedActivityRepository;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -36,7 +37,7 @@ public class StatsServiceImplementation implements StatsService {
         List<Object[]> counts = completedActivityRepository
                 .countByUserIdAndCompletedAtBetweenGroupByDay(userId, startDt, endDt);
         for (Object[] row : counts) {
-            LocalDate day = ((java.sql.Date) row[0]).toLocalDate();
+            LocalDate day = convertToLocalDate(row[0]);
             int count = ((Number) row[1]).intValue();
             result.put(day, count);
         }
@@ -62,5 +63,35 @@ public class StatsServiceImplementation implements StatsService {
         }
         logger.info("Calculated monthly category counts for user {}", userId);
         return byCategory;
+    }
+
+    private LocalDate convertToLocalDate(Object value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Date value cannot be null");
+        }
+        if (value instanceof LocalDate localDate) {
+            return localDate;
+        }
+        if (value instanceof java.sql.Date sqlDate) {
+            return sqlDate.toLocalDate();
+        }
+        if (value instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime.toLocalDate();
+        }
+        if (value instanceof java.util.Date utilDate) {
+            return utilDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+        }
+        if (value instanceof Instant instant) {
+            return instant.atZone(ZoneOffset.UTC).toLocalDate();
+        }
+        try {
+            Object instantObj = value.getClass().getMethod("toInstant").invoke(value);
+            if (instantObj instanceof Instant reflectedInstant) {
+                return reflectedInstant.atZone(ZoneOffset.UTC).toLocalDate();
+            }
+        } catch (ReflectiveOperationException ignored) {
+            // fall through to throw below if conversion fails
+        }
+        throw new IllegalArgumentException("Unsupported date type: " + value.getClass());
     }
 }

@@ -66,8 +66,8 @@ class GuideServiceImplementationTest {
         guideDTO = new GuideDTO();
         guideDTO.setId(1L);
         guideOutput = new GuideOutputDTO();
-        when(mapperFactory.createMapper(Guide.class, GuideDTO.class)).thenReturn(guideMapper);
-        when(mapperFactory.createInputOutputMapper(GuideInputDTO.class, Guide.class, GuideOutputDTO.class))
+        lenient().when(mapperFactory.createMapper(Guide.class, GuideDTO.class)).thenReturn(guideMapper);
+        lenient().when(mapperFactory.createInputOutputMapper(GuideInputDTO.class, Guide.class, GuideOutputDTO.class))
                 .thenReturn(ioMapper);
     }
 
